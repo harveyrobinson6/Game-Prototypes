@@ -9,9 +9,12 @@ public class BattleSceneManager : MonoBehaviour
     public Transform TilePrefab;
     public G_Grid grid { get; private set; }
 
+    [SerializeField] private int w;
+    [SerializeField] private int h;
+
     void Awake()
     {
-        grid = new G_Grid(5, 5, 5);
+        grid = new G_Grid(w, h, 5);
 
         for (int i = 0; i < grid.Tiles.GetLength(0); i++)
             for (int j = 0; j < grid.Tiles.GetLength(1); j++)

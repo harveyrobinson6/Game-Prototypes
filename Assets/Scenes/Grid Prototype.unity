@@ -371,6 +371,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TilePrefab: {fileID: 8452988838587344973, guid: b16275cd950c9aa4e86f9a20a03efb81, type: 3}
+  w: 5
+  h: 5
 --- !u!1001 &4721936578664847045
 PrefabInstance:
   m_ObjectHideFlags: 0
