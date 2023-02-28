@@ -62,6 +62,24 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Select"",
+                    ""type"": ""Button"",
+                    ""id"": ""363f4003-9caf-4c6d-8470-cc5c2c09d27c"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Back"",
+                    ""type"": ""Button"",
+                    ""id"": ""64f3cd37-416a-436e-a502-d75a2db870e7"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -108,6 +126,28 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                     ""action"": ""Down"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""57d3ca81-a2c0-4dd6-83c2-d5eee4830c75"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Select"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f1dce4ee-f375-4a74-b0be-3e8c966e34c1"",
+                    ""path"": ""<Keyboard>/backspace"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Back"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -120,6 +160,8 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         m_CursorMovement_Right = m_CursorMovement.FindAction("Right", throwIfNotFound: true);
         m_CursorMovement_Up = m_CursorMovement.FindAction("Up", throwIfNotFound: true);
         m_CursorMovement_Down = m_CursorMovement.FindAction("Down", throwIfNotFound: true);
+        m_CursorMovement_Select = m_CursorMovement.FindAction("Select", throwIfNotFound: true);
+        m_CursorMovement_Back = m_CursorMovement.FindAction("Back", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -183,6 +225,8 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
     private readonly InputAction m_CursorMovement_Right;
     private readonly InputAction m_CursorMovement_Up;
     private readonly InputAction m_CursorMovement_Down;
+    private readonly InputAction m_CursorMovement_Select;
+    private readonly InputAction m_CursorMovement_Back;
     public struct CursorMovementActions
     {
         private @GridMovement m_Wrapper;
@@ -191,6 +235,8 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         public InputAction @Right => m_Wrapper.m_CursorMovement_Right;
         public InputAction @Up => m_Wrapper.m_CursorMovement_Up;
         public InputAction @Down => m_Wrapper.m_CursorMovement_Down;
+        public InputAction @Select => m_Wrapper.m_CursorMovement_Select;
+        public InputAction @Back => m_Wrapper.m_CursorMovement_Back;
         public InputActionMap Get() { return m_Wrapper.m_CursorMovement; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -212,6 +258,12 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 @Down.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnDown;
                 @Down.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnDown;
                 @Down.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnDown;
+                @Select.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnSelect;
+                @Select.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnSelect;
+                @Select.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnSelect;
+                @Back.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnBack;
+                @Back.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnBack;
+                @Back.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnBack;
             }
             m_Wrapper.m_CursorMovementActionsCallbackInterface = instance;
             if (instance != null)
@@ -228,6 +280,12 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 @Down.started += instance.OnDown;
                 @Down.performed += instance.OnDown;
                 @Down.canceled += instance.OnDown;
+                @Select.started += instance.OnSelect;
+                @Select.performed += instance.OnSelect;
+                @Select.canceled += instance.OnSelect;
+                @Back.started += instance.OnBack;
+                @Back.performed += instance.OnBack;
+                @Back.canceled += instance.OnBack;
             }
         }
     }
@@ -238,5 +296,7 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         void OnRight(InputAction.CallbackContext context);
         void OnUp(InputAction.CallbackContext context);
         void OnDown(InputAction.CallbackContext context);
+        void OnSelect(InputAction.CallbackContext context);
+        void OnBack(InputAction.CallbackContext context);
     }
 }
