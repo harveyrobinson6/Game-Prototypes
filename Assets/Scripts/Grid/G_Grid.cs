@@ -34,7 +34,7 @@ namespace N_Grid
                         adjList.Add((i + 1, j));
 
                     //(-1,0)
-                    if (i - 1 > 0)
+                    if (i - 1 > -1)
                         adjList.Add((i - 1, j));    //DO BOUNDS CHECK DURING ALGORITHM
 
                     //(0,+1)
@@ -42,12 +42,12 @@ namespace N_Grid
                         adjList.Add((i, j + 1));
 
                     //(0,-1)
-                    if (j - 1 > 0)
+                    if (j - 1 > -1)
                         adjList.Add((i, j - 1));
                     
                     G_Tile newTile = new G_Tile(i, j, IndexSizeMultiplier, adjList, tilePrefabs[i,j].Find("GhostSprite").GetComponentInChildren<SpriteRenderer>());  
                     Tiles[i, j] = newTile;
-                    Debug.Log(i + ", " + j);
+                    //Debug.Log(i + ", " + j);
                 }
             }
         }
@@ -73,7 +73,7 @@ namespace N_Grid
             {
                 if (tile.TileWorldPos == pos)
                 {
-                    if (tile.Occupied)
+                    if (tile.OccupationState == OccupationStatus.UNITOCCUPIED)
                     {
                         outUnit = tile.TileOccupant;
                         return true;

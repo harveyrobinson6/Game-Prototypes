@@ -4,13 +4,30 @@ using UnityEngine;
 
 namespace N_Grid
 {
+    public enum OccupationStatus
+    {
+        OPEN,
+        UNITOCCUPIED,
+        ENEMYOCCUPIED,
+        EDIFICE,
+        OUTOFBOUNDS
+    }
+
+    public enum TileType
+    {
+        MEADOWS,
+        SWAMP,
+        MOUNTAIN
+    }
+
     public class G_Tile
     {
         public int TileWIndex { get; private set; }
         public int TileHIndex { get; private set; }
         public Vector3 TileWorldPos { get; private set; }
         public Transform TileOccupant { get; private set; }
-        public bool Occupied { get; private set; }
+        public OccupationStatus OccupationState { get; private set; }
+        public TileType TileType { get; private set; }
         public List<(int x, int y)> AdjacencyList { get; private set; }
         public SpriteRenderer GhostSpriteRend { get; private set; }
 
@@ -26,7 +43,8 @@ namespace N_Grid
 
             TileWorldPos = new Vector3(TileWIndex * coEff, 0, TileHIndex * coEff);
 
-            Occupied = false;
+            OccupationState = OccupationStatus.OPEN; //CHANGE THIS
+            TileType = TileType.MEADOWS;
 
             AdjacencyList = adjList;
 
@@ -35,8 +53,13 @@ namespace N_Grid
 
         public void SetOccupant(Transform occ)
         {
+            OccupationState = OccupationStatus.UNITOCCUPIED;
             TileOccupant = occ;
-            Occupied = true;
+        }
+
+        public void DEBUG_OCCUPY()
+        {
+            OccupationState = OccupationStatus.UNITOCCUPIED;
         }
 
         public void SetGhostSprite(Sprite sprite)

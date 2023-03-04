@@ -15,6 +15,13 @@ public class BattleSceneManager : MonoBehaviour
     [SerializeField] private int h;
 
     [SerializeField] Sprite ghostSprite;
+    [SerializeField] Sprite blockSprite;
+
+    ReturnNode[] prevPath;
+
+    int playerMaxMove = 3;
+
+    [SerializeField] Sprite[] ghostSprites;
 
     void Awake()
     {
@@ -41,6 +48,13 @@ public class BattleSceneManager : MonoBehaviour
             }
 
         grid.Tiles[0, 0].SetOccupant(unit);
+        //grid.Tiles[2, 3].DEBUG_OCCUPY();
+        //grid.Tiles[2, 3].SetGhostSprite(blockSprite);
+
+        foreach (var item in grid.Tiles[1, 1].AdjacencyList)
+        {
+            Debug.Log(item);
+        }
 
         /*
 
@@ -68,27 +82,42 @@ public class BattleSceneManager : MonoBehaviour
         if (cursor.position == originalPos)
             return;
 
-        G_Tile tile = new G_Tile();
+        G_Tile OGPosTile = new G_Tile();
 
-        if (grid.TileAtPos(originalPos, out tile))
+        if (grid.TileAtPos(originalPos, out OGPosTile))
         {
             
         }
 
-        var bfs = new BreadthFirstSearch(grid, (tile.TileWIndex, tile.TileHIndex));
+        var bfs = new BreadthFirstSearch(grid, (OGPosTile.TileWIndex, OGPosTile.TileHIndex));
 
-        if (grid.TileAtPos(cursor.position, out tile))
+        G_Tile cursorPosTile = new G_Tile();
+
+        if (grid.TileAtPos(cursor.position, out cursorPosTile))
         {
 
         }
 
-        var temp = bfs.PathTo((tile.TileWIndex, tile.TileHIndex));
+        var path = bfs.PathTo((cursorPosTile.TileWIndex, cursorPosTile.TileHIndex));
 
-        foreach (var item in temp)
+        if (path.Length > 0)
         {
-            //Debug.Log($"H= {item.Item1} W= {item.Item2}");
-            grid.Tiles[item.Item1, item.Item2].SetGhostSprite(ghostSprite);
+            Debug.Log("testing");
+            foreach (var item in path)
+            {
+                grid.Tiles[item.Self.Item1, item.Self.Item2].SetGhostSprite(ghostSprites[(int)item.NodeSprite]);
+            }
         }
+        /*
+        else
+        {
+            foreach (var item in prevPath)
+            {
+                grid.Tiles[item.Self.Item1, item.Self.Item2].SetGhostSprite(ghostSprites[(int)item.NodeSprite]);
+            }
+        }
+        */
+        prevPath = path;
     }
 
     public void RemoveGhostSprites()

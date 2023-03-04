@@ -138,8 +138,8 @@ public class InputManager : MonoBehaviour
         {
             InputState = InputState.PICKUP_UP_UNIT;
         }
-
-        Debug.Log("empty tile");
+        else
+            Debug.Log("empty tile");
     }
 
 }
