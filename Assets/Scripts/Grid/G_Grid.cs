@@ -87,6 +87,24 @@ namespace N_Grid
             return false;
         }
 
+        public bool OccupyTile(Vector3 pos, Transform occupant)
+        {
+            foreach (G_Tile tile in Tiles)
+            {
+                if (tile.TileWorldPos == pos)
+                {
+                    if (tile.OccupationState == OccupationStatus.OPEN)
+                    {
+                        tile.SetOccupant(occupant);
+                        return true;
+                    }
+                    else
+                        return false;
+                }
+            }
+            return false;
+        }
+
         public List<(int, int)> GetAdjacency((int, int) tileIndex)
         {
             return Tiles[tileIndex.Item1, tileIndex.Item2].AdjacencyList;

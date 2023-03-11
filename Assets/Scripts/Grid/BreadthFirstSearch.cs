@@ -35,7 +35,7 @@ namespace N_Grid
             bool horizontal = false;
             bool vertical = false;
 
-            NodeSprite = NodeSprite.CORNER1;
+            NodeSprite = NodeSprite.NONE;
 
             if (firstNode || lastNode)
             {
@@ -78,47 +78,60 @@ namespace N_Grid
                 else if (vertical && horizontal)
                 {
                     (int, int) result = (PrevNode.Item1 - NextNode.Item1, PrevNode.Item2 - NextNode.Item2);
-                    //int x = PrevNode.Item1 - NextNode.Item1;
-                    //int y = PrevNode.Item2 - NextNode.Item2;
-                    //Debug.Log(result);
-
-                    /*
-                    switch (result)
-                    {
-                        case result.Item1 < 0 && result.Item2 < 0:
-                            NodeSprite = NodeSprite.CORNER1;
-                            break;
-                        case (1, -1):
-                            NodeSprite = NodeSprite.CORNER2;
-                            break;
-                        case (1, 1):
-                            NodeSprite = NodeSprite.CORNER3;
-                            break;
-                        case (-1, 1):
-                            NodeSprite = NodeSprite.CORNER4;
-                            break;
-                    }
-                    */
-
 
                     if (result.Item1 < 0 && result.Item2 < 0)
                     {
-                        NodeSprite = NodeSprite.CORNER1;
+                        if (PrevNode.Item1 == Self.Item1)
+                        {
+                            NodeSprite = NodeSprite.CORNER3;
+                        }
+                        else if(PrevNode.Item2 == Self.Item2)
+                        {
+                            NodeSprite = NodeSprite.CORNER1;
+                        }
                     }
                     else if (result.Item1 > 0 && result.Item2 < 0)
                     {
-                        NodeSprite = NodeSprite.CORNER2;
+                        if (PrevNode.Item1 == Self.Item1)
+                        {
+                            NodeSprite = NodeSprite.CORNER4;
+                        }
+                        else if (PrevNode.Item2 == Self.Item2)
+                        {
+                            NodeSprite = NodeSprite.CORNER2;
+                        }
                     }
                     else if (result.Item1 > 0 && result.Item2 > 0)
                     {
-                        NodeSprite = NodeSprite.CORNER3;
+                        if (PrevNode.Item1 == Self.Item1)
+                        {
+                            NodeSprite = NodeSprite.CORNER1;
+                        }
+                        else if (PrevNode.Item2 == Self.Item2)
+                        {
+                            NodeSprite = NodeSprite.CORNER3;
+                        }
                     }
                     else if (result.Item1 < 0 && result.Item2 > 0)
                     {
-                        NodeSprite = NodeSprite.CORNER4;
+                        if (PrevNode.Item1 == Self.Item1)
+                        {
+                            NodeSprite = NodeSprite.CORNER2;
+                        }
+                        else if (PrevNode.Item2 == Self.Item2)
+                        {
+                            NodeSprite = NodeSprite.CORNER4;
+                        }
                     }
                 }
             }
+
+            Debug.Log("Self= " + self.Item1 + ", " + self.Item2);
+            Debug.Log("Next= " + next.Item1 + ", " + next.Item2);
+            Debug.Log("Prev= " + prev.Item1 + ", " + prev.Item2);
+            Debug.Log("First = " + firstNode + "   Last = " + lastNode);
+            Debug.Log("Vertical = " + vertical + "   Horizontal = " + horizontal);
+
         }
     }
     public class BreadthFirstSearch
@@ -197,7 +210,7 @@ namespace N_Grid
                     else
                     {
 
-                        rtnAry[i] = new ReturnNode(false, false, stackList[i], stackList[i - 1], stackList.Last());
+                        rtnAry[i] = new ReturnNode(false, false, stackList[i], stackList[i - 1], stackList[i+1]);
                     }
                 }
             }

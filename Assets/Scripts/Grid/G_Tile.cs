@@ -57,6 +57,12 @@ namespace N_Grid
             TileOccupant = occ;
         }
 
+        public void FreeTile()
+        {
+            TileOccupant = null;
+            OccupationState = OccupationStatus.OPEN;
+        }
+
         public void DEBUG_OCCUPY()
         {
             OccupationState = OccupationStatus.UNITOCCUPIED;
