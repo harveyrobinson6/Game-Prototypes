@@ -96,8 +96,30 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""7a2a6eaf-c130-445e-bbf8-183389beac42"",
+                    ""path"": ""<Gamepad>/dpad/left"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Left"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""f3873a0c-dc5b-4d16-9dd8-77f28bc35d2f"",
                     ""path"": ""<Keyboard>/d"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Right"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6a06c6fd-c0ed-487d-82cf-d9fac4bc9ac6"",
+                    ""path"": ""<Gamepad>/dpad/right"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -118,8 +140,30 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""3792388b-6c34-4fda-8ecf-c94d6492d462"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Up"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""327195c0-1170-4631-af1b-a1fa788762c2"",
                     ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Down"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f397c429-7aaa-4006-82e0-907b8eee6539"",
+                    ""path"": ""<Gamepad>/dpad/down"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -140,12 +184,90 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""8c03fec3-786b-47f2-832f-206e30a68e8c"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Select"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""f1dce4ee-f375-4a74-b0be-3e8c966e34c1"",
                     ""path"": ""<Keyboard>/backspace"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Back"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f42f82e6-648b-4aa1-b51f-05cf3360e5b7"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Back"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""ContextMenu"",
+            ""id"": ""407f1ced-549f-4663-a190-595d7ed668b0"",
+            ""actions"": [
+                {
+                    ""name"": ""New action"",
+                    ""type"": ""Button"",
+                    ""id"": ""5df20faa-9939-4870-9391-20d339a68466"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""c423fe3d-36ba-4733-9915-b0afcd8d2e9b"",
+                    ""path"": """",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""New action"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""UnitInventory"",
+            ""id"": ""1b7d27a8-566b-41c7-92ef-1194898c9684"",
+            ""actions"": [
+                {
+                    ""name"": ""New action"",
+                    ""type"": ""Button"",
+                    ""id"": ""c4c5f744-d23c-4a1e-a04b-360872b965c6"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""49f7175c-4d60-4a2e-b7bb-76e98e046156"",
+                    ""path"": """",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""New action"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -162,6 +284,12 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         m_CursorMovement_Down = m_CursorMovement.FindAction("Down", throwIfNotFound: true);
         m_CursorMovement_Select = m_CursorMovement.FindAction("Select", throwIfNotFound: true);
         m_CursorMovement_Back = m_CursorMovement.FindAction("Back", throwIfNotFound: true);
+        // ContextMenu
+        m_ContextMenu = asset.FindActionMap("ContextMenu", throwIfNotFound: true);
+        m_ContextMenu_Newaction = m_ContextMenu.FindAction("New action", throwIfNotFound: true);
+        // UnitInventory
+        m_UnitInventory = asset.FindActionMap("UnitInventory", throwIfNotFound: true);
+        m_UnitInventory_Newaction = m_UnitInventory.FindAction("New action", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -290,6 +418,72 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         }
     }
     public CursorMovementActions @CursorMovement => new CursorMovementActions(this);
+
+    // ContextMenu
+    private readonly InputActionMap m_ContextMenu;
+    private IContextMenuActions m_ContextMenuActionsCallbackInterface;
+    private readonly InputAction m_ContextMenu_Newaction;
+    public struct ContextMenuActions
+    {
+        private @GridMovement m_Wrapper;
+        public ContextMenuActions(@GridMovement wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Newaction => m_Wrapper.m_ContextMenu_Newaction;
+        public InputActionMap Get() { return m_Wrapper.m_ContextMenu; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(ContextMenuActions set) { return set.Get(); }
+        public void SetCallbacks(IContextMenuActions instance)
+        {
+            if (m_Wrapper.m_ContextMenuActionsCallbackInterface != null)
+            {
+                @Newaction.started -= m_Wrapper.m_ContextMenuActionsCallbackInterface.OnNewaction;
+                @Newaction.performed -= m_Wrapper.m_ContextMenuActionsCallbackInterface.OnNewaction;
+                @Newaction.canceled -= m_Wrapper.m_ContextMenuActionsCallbackInterface.OnNewaction;
+            }
+            m_Wrapper.m_ContextMenuActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @Newaction.started += instance.OnNewaction;
+                @Newaction.performed += instance.OnNewaction;
+                @Newaction.canceled += instance.OnNewaction;
+            }
+        }
+    }
+    public ContextMenuActions @ContextMenu => new ContextMenuActions(this);
+
+    // UnitInventory
+    private readonly InputActionMap m_UnitInventory;
+    private IUnitInventoryActions m_UnitInventoryActionsCallbackInterface;
+    private readonly InputAction m_UnitInventory_Newaction;
+    public struct UnitInventoryActions
+    {
+        private @GridMovement m_Wrapper;
+        public UnitInventoryActions(@GridMovement wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Newaction => m_Wrapper.m_UnitInventory_Newaction;
+        public InputActionMap Get() { return m_Wrapper.m_UnitInventory; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(UnitInventoryActions set) { return set.Get(); }
+        public void SetCallbacks(IUnitInventoryActions instance)
+        {
+            if (m_Wrapper.m_UnitInventoryActionsCallbackInterface != null)
+            {
+                @Newaction.started -= m_Wrapper.m_UnitInventoryActionsCallbackInterface.OnNewaction;
+                @Newaction.performed -= m_Wrapper.m_UnitInventoryActionsCallbackInterface.OnNewaction;
+                @Newaction.canceled -= m_Wrapper.m_UnitInventoryActionsCallbackInterface.OnNewaction;
+            }
+            m_Wrapper.m_UnitInventoryActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @Newaction.started += instance.OnNewaction;
+                @Newaction.performed += instance.OnNewaction;
+                @Newaction.canceled += instance.OnNewaction;
+            }
+        }
+    }
+    public UnitInventoryActions @UnitInventory => new UnitInventoryActions(this);
     public interface ICursorMovementActions
     {
         void OnLeft(InputAction.CallbackContext context);
@@ -298,5 +492,13 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         void OnDown(InputAction.CallbackContext context);
         void OnSelect(InputAction.CallbackContext context);
         void OnBack(InputAction.CallbackContext context);
+    }
+    public interface IContextMenuActions
+    {
+        void OnNewaction(InputAction.CallbackContext context);
+    }
+    public interface IUnitInventoryActions
+    {
+        void OnNewaction(InputAction.CallbackContext context);
     }
 }

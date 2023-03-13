@@ -5,6 +5,22 @@ using N_Grid;
 using N_Entity;
 using TMPro;
 
+public struct TerrainType
+{
+    public string TerrainName { get; private set; }
+    public string TerrainDesc { get; private set; }
+    public int TerrainHinderance { get; private set; }
+    public int TerrainEvasion { get; private set; }
+
+    public TerrainType(string name, string desc, int hinderance, int evasion)
+    {
+        TerrainName = name;
+        TerrainDesc = desc;
+        TerrainHinderance = hinderance;
+        TerrainEvasion = evasion;
+    }
+}
+
 public class BattleSceneManager : MonoBehaviour
 {
     public Transform TilePrefab;
@@ -12,6 +28,8 @@ public class BattleSceneManager : MonoBehaviour
     public Transform EntityAnchorPrefab;
     public Transform GhostEntityPrefab;
     [SerializeField] InputManager InputManager;
+
+    public List<TerrainType> TerrainTypes { get; private set; }
 
     Transform GhostEntity;
 
@@ -94,6 +112,29 @@ public class BattleSceneManager : MonoBehaviour
         //make classes, put in list
         GhostEntity = Instantiate(GhostEntityPrefab, new Vector3(0,0,0), Quaternion.identity);
         GhostEntity.gameObject.SetActive(false);
+
+        TerrainTypes = new List<TerrainType>();
+
+        TerrainTypes.Add(new TerrainType(
+            "Meadows",
+            "Flat open plains, prime battlefield",
+            0,
+            0
+            ));
+
+        TerrainTypes.Add(new TerrainType(
+            "Swamp",
+            "A horrible boggy mess",
+            1,
+            -10
+            ));
+
+        TerrainTypes.Add(new TerrainType(
+            "Forest",
+            "The trees offer their cover",
+            1,
+            20
+            ));
     }
 
     public void CalculatePath(Transform cursor, Transform unit)

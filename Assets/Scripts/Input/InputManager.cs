@@ -10,6 +10,7 @@ enum InputState
     UNIT_CONTEXT_MENU,
     PICKUP_UP_UNIT,
     UNIT_MOVING,
+    CUSOR_MOVING,
     NO_INPUT
 }
 
@@ -26,6 +27,7 @@ public class InputManager : MonoBehaviour
     GridMovement GridMovement;
     InputState InputState;
     [SerializeField] BattleSceneManager BSM;
+    [SerializeField] UIManager UIManager;
     Transform SelectedUnit = null;
     [SerializeField] Transform Cursor;
 
@@ -42,6 +44,13 @@ public class InputManager : MonoBehaviour
     List<string> ElementType;
     Transform canvas;
 
+    Vector3 oldCursorPos;
+    Vector3 newCursorPos;
+    float elapsedTime;
+    float desiredDuration = 0.1f;
+    bool pickup = false;
+    [SerializeField] Transform cursorAnchor;
+
     private void Awake()
     {
         GridMovement = new GridMovement();
@@ -53,6 +62,11 @@ public class InputManager : MonoBehaviour
         GridMovement.CursorMovement.Right.performed += ctx => Cardinals(Direction.RIGHT);
         GridMovement.CursorMovement.Select.performed += ctx => Select();
         GridMovement.CursorMovement.Back.performed += ctx => Back();
+    }
+
+    private void Start()
+    {
+        UIManager.CursorFeedback(BSM.grid.Tiles[0,0]);  //will need to chnage when the cursor no longer starts at 0,0
     }
 
     private void OnEnable()
@@ -102,25 +116,29 @@ public class InputManager : MonoBehaviour
                 {
                     case Direction.UP:
                         CardinalDirections(Direction.UP);
-                        BSM.CalculatePath(Cursor, SelectedUnit);
+                        BSM.CalculatePath(cursorAnchor, SelectedUnit);
                         break;
                     case Direction.DOWN:
                         CardinalDirections(Direction.DOWN);
-                        BSM.CalculatePath(Cursor, SelectedUnit);
+                        BSM.CalculatePath(cursorAnchor, SelectedUnit);
                         break;
                     case Direction.LEFT:
                         CardinalDirections(Direction.LEFT);
-                        BSM.CalculatePath(Cursor, SelectedUnit);
+                        BSM.CalculatePath(cursorAnchor, SelectedUnit);
                         break;
                     case Direction.RIGHT:
                         CardinalDirections(Direction.RIGHT);
-                        BSM.CalculatePath(Cursor, SelectedUnit);
+                        BSM.CalculatePath(cursorAnchor, SelectedUnit);
                         break;
                 }
 
                 break;
 
             case InputState.UNIT_MOVING:
+
+                break;
+
+            case InputState.CUSOR_MOVING:
 
                 break;
 
@@ -135,7 +153,7 @@ public class InputManager : MonoBehaviour
         switch (InputState)
         {
             case InputState.ACCEPTING_INPUT:
-                UnitPickup(Cursor);
+                UnitPickup(cursorAnchor);
                 break;
 
             case InputState.UNIT_CONTEXT_MENU:
@@ -165,6 +183,10 @@ public class InputManager : MonoBehaviour
 
                 break;
 
+            case InputState.CUSOR_MOVING:
+
+                break;
+
             case InputState.NO_INPUT:
                 break;
         }
@@ -182,6 +204,7 @@ public class InputManager : MonoBehaviour
 
                 CloseContextMenu();
                 SelectedUnit = null;
+                pickup = false;
                 BSM.UnitDropped();
                 BSM.CancelGhostMove();
                 InputState = InputState.ACCEPTING_INPUT;
@@ -190,6 +213,7 @@ public class InputManager : MonoBehaviour
 
             case InputState.PICKUP_UP_UNIT:
                 SelectedUnit = null;
+                pickup = false;
                 BSM.UnitDropped();
                 InputState = InputState.ACCEPTING_INPUT;
                 break;
@@ -198,16 +222,21 @@ public class InputManager : MonoBehaviour
 
                 break;
 
+            case InputState.CUSOR_MOVING:
+
+                break;
+
             case InputState.NO_INPUT:
                 break;
         }
     }
 
-    void UnitPickup(Transform cursor)
+    void UnitPickup(Transform cursorAnchor)
     {
-        if (BSM.grid.UnitAtPos(cursor.position, out SelectedUnit))  //MODIFY THIS LATER TO GET ENEMY INFO TOO
+        if (BSM.grid.UnitAtPos(cursorAnchor.position, out SelectedUnit))  //MODIFY THIS LATER TO GET ENEMY INFO TOO
         {
             InputState = InputState.PICKUP_UP_UNIT;
+            pickup = true;
         }
         else
             Debug.Log("empty tile");
@@ -238,10 +267,37 @@ public class InputManager : MonoBehaviour
 
         if (BSM.grid.TileAtPos(potentialPos, out tile))
         {
-            Cursor.position = potentialPos;
+            oldCursorPos = Cursor.position;
+            newCursorPos = potentialPos;
+            cursorAnchor.position = potentialPos;
+
+            InputState = InputState.CUSOR_MOVING;
+            //Cursor.position = potentialPos;
+            UIManager.CursorFeedback(tile);
         }
         else
             return;
+    }
+
+    private void FixedUpdate()
+    {
+        if (InputState == InputState.CUSOR_MOVING)
+        {
+            elapsedTime += Time.deltaTime;
+            float percentageComplete = elapsedTime / desiredDuration;
+
+            Cursor.position = Vector3.Lerp(oldCursorPos, newCursorPos, percentageComplete);
+
+            if (Cursor.position == newCursorPos)
+            {
+                elapsedTime = 0;
+
+                if (pickup)
+                    InputState = InputState.PICKUP_UP_UNIT;
+                else
+                    InputState = InputState.ACCEPTING_INPUT;
+            }
+        }
     }
 
     #region CONTEXT_MENU
@@ -353,6 +409,8 @@ public class InputManager : MonoBehaviour
                 BSM.UnitCommitMove();
                 BSM.RemoveGhostSprites();
                 CloseContextMenu();
+                pickup = false;
+                contextMenuSelectedItem = 0;
                 InputState = InputState.ACCEPTING_INPUT;
                 break;
         }

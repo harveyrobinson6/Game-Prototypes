@@ -15,9 +15,9 @@ namespace N_Grid
 
     public enum TileType
     {
-        MEADOWS,
-        SWAMP,
-        MOUNTAIN
+        Meadows,
+        Swamp,
+        Forest
     }
 
     public class G_Tile
@@ -44,7 +44,17 @@ namespace N_Grid
             TileWorldPos = new Vector3(TileWIndex * coEff, 0, TileHIndex * coEff);
 
             OccupationState = OccupationStatus.OPEN; //CHANGE THIS
-            TileType = TileType.MEADOWS;
+
+            System.Random rnd = new System.Random();
+            int i = rnd.Next(4);
+            if (i == 0)
+                TileType = TileType.Meadows;
+            else if (i == 1)
+                TileType = TileType.Swamp;
+            else if (i == 2)
+                TileType = TileType.Forest;
+
+            //TileType = TileType.Swamp;
 
             AdjacencyList = adjList;
 
