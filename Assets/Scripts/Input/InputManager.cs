@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using N_Grid;
+using N_Entity;
 
 enum InputState
 {
     ACCEPTING_INPUT,
+    ONLY_MOVEMENT,
     UNIT_CONTEXT_MENU,
+    UNIT_OVERVIEW_MENU,
     PICKUP_UP_UNIT,
     UNIT_MOVING,
     CUSOR_MOVING,
@@ -62,6 +65,7 @@ public class InputManager : MonoBehaviour
         GridMovement.CursorMovement.Right.performed += ctx => Cardinals(Direction.RIGHT);
         GridMovement.CursorMovement.Select.performed += ctx => Select();
         GridMovement.CursorMovement.Back.performed += ctx => Back();
+        GridMovement.CursorMovement.Menu.performed += ctx => MenuKey();
     }
 
     private void Start()
@@ -82,7 +86,7 @@ public class InputManager : MonoBehaviour
     public void GhostMoveFinished()
     {
         InputState = InputState.UNIT_CONTEXT_MENU;
-        OpenContextMenu();
+        UIManager.OpenContextMenu(SelectedUnit);
     }
 
     void Cardinals(Direction dir)
@@ -107,8 +111,26 @@ public class InputManager : MonoBehaviour
                 }
                 break;
 
+            case InputState.ONLY_MOVEMENT:
+                switch (dir)
+                {
+                    case Direction.UP:
+                        CardinalDirections(Direction.UP);
+                        break;
+                    case Direction.DOWN:
+                        CardinalDirections(Direction.DOWN);
+                        break;
+                    case Direction.LEFT:
+                        CardinalDirections(Direction.LEFT);
+                        break;
+                    case Direction.RIGHT:
+                        CardinalDirections(Direction.RIGHT);
+                        break;
+                }
+                break;
+
             case InputState.UNIT_CONTEXT_MENU:
-                ContextMenuInput(dir);
+                UIManager.ContextMenuInput(dir);
                 break;
 
             case InputState.PICKUP_UP_UNIT:
@@ -156,8 +178,12 @@ public class InputManager : MonoBehaviour
                 UnitPickup(cursorAnchor);
                 break;
 
+            case InputState.ONLY_MOVEMENT:
+                break;
+
             case InputState.UNIT_CONTEXT_MENU:
-                ContextMenuIconSelected();
+                InputState = InputState.NO_INPUT;
+                StartCoroutine(UIManager.ContextMenuIconSelected());
                 break;
 
             case InputState.PICKUP_UP_UNIT:
@@ -166,8 +192,8 @@ public class InputManager : MonoBehaviour
                 {
                     //unit hasnt moved, open menu
 
-                    InputState = InputState.UNIT_CONTEXT_MENU;
-                    OpenContextMenu();
+                    InputState = InputState.NO_INPUT;
+                    UIManager.OpenContextMenu(SelectedUnit);
                 }
                 else
                 {
@@ -200,14 +226,17 @@ public class InputManager : MonoBehaviour
                 InputState = InputState.ACCEPTING_INPUT;
                 break;
 
+            case InputState.ONLY_MOVEMENT:
+                break;
+
             case InputState.UNIT_CONTEXT_MENU:
 
-                CloseContextMenu();
+                InputState = InputState.NO_INPUT;
+                UIManager.CloseContextMenu();
                 SelectedUnit = null;
                 pickup = false;
                 BSM.UnitDropped();
                 BSM.CancelGhostMove();
-                InputState = InputState.ACCEPTING_INPUT;
 
                 break;
 
@@ -229,6 +258,31 @@ public class InputManager : MonoBehaviour
             case InputState.NO_INPUT:
                 break;
         }
+    }
+
+    void MenuKey()
+    {
+        
+
+
+
+        //if unit at pos, if not then return
+
+
+        if (BSM.grid.UnitAtPos(cursorAnchor.position, out SelectedUnit))  //MODIFY THIS LATER TO GET ENEMY INFO TOO
+        {
+            //set enum to menu open (only accept back button and l r triggers)
+            InputState = InputState.UNIT_OVERVIEW_MENU;
+            //get rid of cursorfeedback menu (use animator)
+            StartCoroutine(UIManager.CursorFeedbackExit());
+            //spawn unitoverview (use animator)
+
+            Unit unit = BSM.UnitFromTransform(SelectedUnit);
+            StartCoroutine(UIManager.UnitOverviewOne(unit));
+        }
+        else
+            return;
+
     }
 
     void UnitPickup(Transform cursorAnchor)
@@ -300,121 +354,26 @@ public class InputManager : MonoBehaviour
         }
     }
 
-    #region CONTEXT_MENU
-
-    void OpenContextMenu()
+    public void ContextMenuOpened()
     {
-        UIPrefabs = new Queue<Transform>();
-        UIElements = new List<Transform>();
-        ElementType = new List<string>();
-        animators = new List<Animator>();
-        canvas = SelectedUnit.Find("Canvas");
-
-        foreach (var item in uiprefabs)
-        {
-            UIPrefabs.Enqueue(item);
-        }
-
-        for (int i = 0; i < elementEnabled.Length; i++)
-        {
-            if (!elementEnabled[i])
-                continue;
-
-            Transform t = Instantiate(UIPrefabs.Dequeue(), canvas);
-            t.GetComponent<SpriteRenderer>().sprite = sprites[i];
-            animators.Add(t.GetComponent<Animator>());
-            UIElements.Add(t);
-            ElementType.Add(elementType[i]);
-        }
-
-        ContextMenuPreSelect();
-        ContextMenuPostSelect();
+        InputState = InputState.UNIT_CONTEXT_MENU;
     }
 
-    void CloseContextMenu()
+    public void ContextMenuClosed()
     {
-        List<Transform> list = new List<Transform>();
-
-        foreach (Transform child in UIElements)
-        {
-            list.Add(child);
-        }
-
-        while (list.Count > 0)
-        {
-            var temp = list[0];
-            list.RemoveAt(0);
-            Destroy(temp.gameObject);
-        }
+        InputState = InputState.ACCEPTING_INPUT;
     }
 
-    void ContextMenuInput(Direction dir)
+    public void IgnoreInput()
     {
-        ContextMenuPreSelect();
-
-        switch (dir)
-        {
-            case Direction.UP:
-
-                if (contextMenuSelectedItem == 0)
-                    contextMenuSelectedItem = UIElements.Count - 1;
-                else
-                    contextMenuSelectedItem--;
-
-                break;
-
-            case Direction.DOWN:
-
-                if (contextMenuSelectedItem == UIElements.Count - 1)
-                    contextMenuSelectedItem = 0;
-                else
-                    contextMenuSelectedItem++;
-
-                break;
-        }
-
-        ContextMenuPostSelect();
+        InputState = InputState.NO_INPUT;
     }
 
-    void ContextMenuPreSelect()
+    public void ContextMenuStay()
     {
-        animators[contextMenuSelectedItem].ResetTrigger("Selected");
-        animators[contextMenuSelectedItem].SetTrigger("Deselected");
+        BSM.UnitCommitMove();
+        BSM.RemoveGhostSprites();
+        pickup = false;
+        InputState = InputState.ACCEPTING_INPUT;
     }
-
-    void ContextMenuPostSelect()
-    {
-        animators[contextMenuSelectedItem].ResetTrigger("Deselected");
-        animators[contextMenuSelectedItem].SetTrigger("Selected");
-    }
-
-    void ContextMenuIconSelected()
-    {
-        string type = ElementType[contextMenuSelectedItem];
-        Debug.Log(type);
-
-        switch (type)
-        {
-            case "Attack":
-
-                break;
-
-            case "Inventory":
-
-                break;
-
-            case "Stay":
-
-                //move unit and anchor to new post
-                BSM.UnitCommitMove();
-                BSM.RemoveGhostSprites();
-                CloseContextMenu();
-                pickup = false;
-                contextMenuSelectedItem = 0;
-                InputState = InputState.ACCEPTING_INPUT;
-                break;
-        }
-    }
-
-    #endregion
 }

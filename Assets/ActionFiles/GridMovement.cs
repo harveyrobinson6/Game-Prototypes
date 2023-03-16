@@ -80,6 +80,15 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Menu"",
+                    ""type"": ""Button"",
+                    ""id"": ""e348f4cc-3393-4698-8e24-ffbb484f52ac"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -214,60 +223,26 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                     ""action"": ""Back"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
-                }
-            ]
-        },
-        {
-            ""name"": ""ContextMenu"",
-            ""id"": ""407f1ced-549f-4663-a190-595d7ed668b0"",
-            ""actions"": [
-                {
-                    ""name"": ""New action"",
-                    ""type"": ""Button"",
-                    ""id"": ""5df20faa-9939-4870-9391-20d339a68466"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                }
-            ],
-            ""bindings"": [
+                },
                 {
                     ""name"": """",
-                    ""id"": ""c423fe3d-36ba-4733-9915-b0afcd8d2e9b"",
-                    ""path"": """",
+                    ""id"": ""951d03e2-7b6a-4e64-90d5-8249fd81a1a0"",
+                    ""path"": ""<Keyboard>/x"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""New action"",
+                    ""action"": ""Menu"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
-                }
-            ]
-        },
-        {
-            ""name"": ""UnitInventory"",
-            ""id"": ""1b7d27a8-566b-41c7-92ef-1194898c9684"",
-            ""actions"": [
-                {
-                    ""name"": ""New action"",
-                    ""type"": ""Button"",
-                    ""id"": ""c4c5f744-d23c-4a1e-a04b-360872b965c6"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                }
-            ],
-            ""bindings"": [
+                },
                 {
                     ""name"": """",
-                    ""id"": ""49f7175c-4d60-4a2e-b7bb-76e98e046156"",
-                    ""path"": """",
+                    ""id"": ""51d6a65f-3aba-45d0-bac8-a478e59d52be"",
+                    ""path"": ""<Gamepad>/buttonWest"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""New action"",
+                    ""action"": ""Menu"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -284,12 +259,7 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         m_CursorMovement_Down = m_CursorMovement.FindAction("Down", throwIfNotFound: true);
         m_CursorMovement_Select = m_CursorMovement.FindAction("Select", throwIfNotFound: true);
         m_CursorMovement_Back = m_CursorMovement.FindAction("Back", throwIfNotFound: true);
-        // ContextMenu
-        m_ContextMenu = asset.FindActionMap("ContextMenu", throwIfNotFound: true);
-        m_ContextMenu_Newaction = m_ContextMenu.FindAction("New action", throwIfNotFound: true);
-        // UnitInventory
-        m_UnitInventory = asset.FindActionMap("UnitInventory", throwIfNotFound: true);
-        m_UnitInventory_Newaction = m_UnitInventory.FindAction("New action", throwIfNotFound: true);
+        m_CursorMovement_Menu = m_CursorMovement.FindAction("Menu", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -355,6 +325,7 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
     private readonly InputAction m_CursorMovement_Down;
     private readonly InputAction m_CursorMovement_Select;
     private readonly InputAction m_CursorMovement_Back;
+    private readonly InputAction m_CursorMovement_Menu;
     public struct CursorMovementActions
     {
         private @GridMovement m_Wrapper;
@@ -365,6 +336,7 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         public InputAction @Down => m_Wrapper.m_CursorMovement_Down;
         public InputAction @Select => m_Wrapper.m_CursorMovement_Select;
         public InputAction @Back => m_Wrapper.m_CursorMovement_Back;
+        public InputAction @Menu => m_Wrapper.m_CursorMovement_Menu;
         public InputActionMap Get() { return m_Wrapper.m_CursorMovement; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -392,6 +364,9 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 @Back.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnBack;
                 @Back.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnBack;
                 @Back.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnBack;
+                @Menu.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnMenu;
+                @Menu.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnMenu;
+                @Menu.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnMenu;
             }
             m_Wrapper.m_CursorMovementActionsCallbackInterface = instance;
             if (instance != null)
@@ -414,76 +389,13 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 @Back.started += instance.OnBack;
                 @Back.performed += instance.OnBack;
                 @Back.canceled += instance.OnBack;
+                @Menu.started += instance.OnMenu;
+                @Menu.performed += instance.OnMenu;
+                @Menu.canceled += instance.OnMenu;
             }
         }
     }
     public CursorMovementActions @CursorMovement => new CursorMovementActions(this);
-
-    // ContextMenu
-    private readonly InputActionMap m_ContextMenu;
-    private IContextMenuActions m_ContextMenuActionsCallbackInterface;
-    private readonly InputAction m_ContextMenu_Newaction;
-    public struct ContextMenuActions
-    {
-        private @GridMovement m_Wrapper;
-        public ContextMenuActions(@GridMovement wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Newaction => m_Wrapper.m_ContextMenu_Newaction;
-        public InputActionMap Get() { return m_Wrapper.m_ContextMenu; }
-        public void Enable() { Get().Enable(); }
-        public void Disable() { Get().Disable(); }
-        public bool enabled => Get().enabled;
-        public static implicit operator InputActionMap(ContextMenuActions set) { return set.Get(); }
-        public void SetCallbacks(IContextMenuActions instance)
-        {
-            if (m_Wrapper.m_ContextMenuActionsCallbackInterface != null)
-            {
-                @Newaction.started -= m_Wrapper.m_ContextMenuActionsCallbackInterface.OnNewaction;
-                @Newaction.performed -= m_Wrapper.m_ContextMenuActionsCallbackInterface.OnNewaction;
-                @Newaction.canceled -= m_Wrapper.m_ContextMenuActionsCallbackInterface.OnNewaction;
-            }
-            m_Wrapper.m_ContextMenuActionsCallbackInterface = instance;
-            if (instance != null)
-            {
-                @Newaction.started += instance.OnNewaction;
-                @Newaction.performed += instance.OnNewaction;
-                @Newaction.canceled += instance.OnNewaction;
-            }
-        }
-    }
-    public ContextMenuActions @ContextMenu => new ContextMenuActions(this);
-
-    // UnitInventory
-    private readonly InputActionMap m_UnitInventory;
-    private IUnitInventoryActions m_UnitInventoryActionsCallbackInterface;
-    private readonly InputAction m_UnitInventory_Newaction;
-    public struct UnitInventoryActions
-    {
-        private @GridMovement m_Wrapper;
-        public UnitInventoryActions(@GridMovement wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Newaction => m_Wrapper.m_UnitInventory_Newaction;
-        public InputActionMap Get() { return m_Wrapper.m_UnitInventory; }
-        public void Enable() { Get().Enable(); }
-        public void Disable() { Get().Disable(); }
-        public bool enabled => Get().enabled;
-        public static implicit operator InputActionMap(UnitInventoryActions set) { return set.Get(); }
-        public void SetCallbacks(IUnitInventoryActions instance)
-        {
-            if (m_Wrapper.m_UnitInventoryActionsCallbackInterface != null)
-            {
-                @Newaction.started -= m_Wrapper.m_UnitInventoryActionsCallbackInterface.OnNewaction;
-                @Newaction.performed -= m_Wrapper.m_UnitInventoryActionsCallbackInterface.OnNewaction;
-                @Newaction.canceled -= m_Wrapper.m_UnitInventoryActionsCallbackInterface.OnNewaction;
-            }
-            m_Wrapper.m_UnitInventoryActionsCallbackInterface = instance;
-            if (instance != null)
-            {
-                @Newaction.started += instance.OnNewaction;
-                @Newaction.performed += instance.OnNewaction;
-                @Newaction.canceled += instance.OnNewaction;
-            }
-        }
-    }
-    public UnitInventoryActions @UnitInventory => new UnitInventoryActions(this);
     public interface ICursorMovementActions
     {
         void OnLeft(InputAction.CallbackContext context);
@@ -492,13 +404,6 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         void OnDown(InputAction.CallbackContext context);
         void OnSelect(InputAction.CallbackContext context);
         void OnBack(InputAction.CallbackContext context);
-    }
-    public interface IContextMenuActions
-    {
-        void OnNewaction(InputAction.CallbackContext context);
-    }
-    public interface IUnitInventoryActions
-    {
-        void OnNewaction(InputAction.CallbackContext context);
+        void OnMenu(InputAction.CallbackContext context);
     }
 }

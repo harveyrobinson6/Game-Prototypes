@@ -8,6 +8,10 @@ namespace N_Entity
     {
 
 
+        public Unit()
+        {
+
+        }
 
         public Unit(int id, Stats stats, SpriteRenderer spriteRenderer, Transform transform)
         {

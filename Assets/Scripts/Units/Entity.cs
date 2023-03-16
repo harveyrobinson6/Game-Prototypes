@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace N_Entity
 {
+    public enum ENTITY_CLASS  //COULD MAKE THIS ITS OWN CLASS LATER
+    {
+        KNIGHT,
+        MAGE
+    }
+
     public abstract class Entity
     {
         public int ID { get; protected set; }

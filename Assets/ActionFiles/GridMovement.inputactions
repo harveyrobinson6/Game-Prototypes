@@ -58,6 +58,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Menu",
+                    "type": "Button",
+                    "id": "e348f4cc-3393-4698-8e24-ffbb484f52ac",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -192,60 +201,26 @@
                     "action": "Back",
                     "isComposite": false,
                     "isPartOfComposite": false
-                }
-            ]
-        },
-        {
-            "name": "ContextMenu",
-            "id": "407f1ced-549f-4663-a190-595d7ed668b0",
-            "actions": [
-                {
-                    "name": "New action",
-                    "type": "Button",
-                    "id": "5df20faa-9939-4870-9391-20d339a68466",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                }
-            ],
-            "bindings": [
+                },
                 {
                     "name": "",
-                    "id": "c423fe3d-36ba-4733-9915-b0afcd8d2e9b",
-                    "path": "",
+                    "id": "951d03e2-7b6a-4e64-90d5-8249fd81a1a0",
+                    "path": "<Keyboard>/x",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "New action",
+                    "action": "Menu",
                     "isComposite": false,
                     "isPartOfComposite": false
-                }
-            ]
-        },
-        {
-            "name": "UnitInventory",
-            "id": "1b7d27a8-566b-41c7-92ef-1194898c9684",
-            "actions": [
-                {
-                    "name": "New action",
-                    "type": "Button",
-                    "id": "c4c5f744-d23c-4a1e-a04b-360872b965c6",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                }
-            ],
-            "bindings": [
+                },
                 {
                     "name": "",
-                    "id": "49f7175c-4d60-4a2e-b7bb-76e98e046156",
-                    "path": "",
+                    "id": "51d6a65f-3aba-45d0-bac8-a478e59d52be",
+                    "path": "<Gamepad>/buttonWest",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "New action",
+                    "action": "Menu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

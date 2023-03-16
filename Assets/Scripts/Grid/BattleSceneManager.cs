@@ -303,7 +303,7 @@ public class BattleSceneManager : MonoBehaviour
         GhostEntity.position = new Vector3(0, 0, 0);
     }
 
-    int UnitIDFromTransform(Transform transform)
+    public int UnitIDFromTransform(Transform transform)
     {
         int rtnInt = 0;
 
@@ -317,5 +317,21 @@ public class BattleSceneManager : MonoBehaviour
         }
 
         return rtnInt;
+    }
+
+    public Unit UnitFromTransform(Transform transform)
+    {
+        Unit rtnUnit = new Unit();
+
+        foreach (Unit unit in units)
+        {
+            if (unit.EntityTransform == transform)
+            {
+                rtnUnit = unit;
+                return rtnUnit;
+            }
+        }
+
+        return rtnUnit;
     }
 }
