@@ -183,7 +183,7 @@ public class InputManager : MonoBehaviour
 
             case InputState.UNIT_CONTEXT_MENU:
                 InputState = InputState.NO_INPUT;
-                StartCoroutine(UIManager.ContextMenuIconSelected());
+                UIManager.ContextMenuIconSelected();
                 break;
 
             case InputState.PICKUP_UP_UNIT:
@@ -240,6 +240,15 @@ public class InputManager : MonoBehaviour
 
                 break;
 
+            case InputState.UNIT_OVERVIEW_MENU:
+                
+                if (UIManager.GetCamState() == CameraState.UNIT_OVERVIEW)
+                {
+                    UIManager.UnitOverviewExit();
+                }
+                
+                break;
+
             case InputState.PICKUP_UP_UNIT:
                 SelectedUnit = null;
                 pickup = false;
@@ -262,23 +271,17 @@ public class InputManager : MonoBehaviour
 
     void MenuKey()
     {
-        
-
-
-
-        //if unit at pos, if not then return
-
+        if (InputState != InputState.ACCEPTING_INPUT)
+            return;
 
         if (BSM.grid.UnitAtPos(cursorAnchor.position, out SelectedUnit))  //MODIFY THIS LATER TO GET ENEMY INFO TOO
         {
             //set enum to menu open (only accept back button and l r triggers)
-            InputState = InputState.UNIT_OVERVIEW_MENU;
-            //get rid of cursorfeedback menu (use animator)
-            StartCoroutine(UIManager.CursorFeedbackExit());
+            InputState = InputState.NO_INPUT;
             //spawn unitoverview (use animator)
 
             Unit unit = BSM.UnitFromTransform(SelectedUnit);
-            StartCoroutine(UIManager.UnitOverviewOne(unit));
+            UIManager.UnitOverviewOne(unit);
         }
         else
             return;
@@ -367,6 +370,16 @@ public class InputManager : MonoBehaviour
     public void IgnoreInput()
     {
         InputState = InputState.NO_INPUT;
+    }
+
+    public void UnitOverviewOpen()
+    {
+        InputState = InputState.UNIT_OVERVIEW_MENU;
+    }
+
+    public void UnitOverviewClosed()
+    {
+        InputState = InputState.ACCEPTING_INPUT;
     }
 
     public void ContextMenuStay()

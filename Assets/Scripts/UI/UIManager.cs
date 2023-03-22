@@ -4,10 +4,14 @@ using UnityEngine;
 using TMPro;
 using N_Grid;
 using N_Entity;
+using DG.Tweening;
 
 public class UIManager : MonoBehaviour
 {
     [SerializeField] InputManager InputManager;
+    [SerializeField] CameraFollow CameraFollow;
+
+    Tween currentSelected;
 
     int contextMenuSelectedItem = 0;
     List<Animator> animators;
@@ -19,6 +23,9 @@ public class UIManager : MonoBehaviour
     List<Transform> UIElements;
     List<string> ElementType;
     Transform canvas;
+    Vector3[] ContextMenuPositions = { new Vector3(0f, 2.5f, 0f), 
+                                       new Vector3(1.7f, 1.7f, 0f), 
+                                       new Vector3(2.5f, 0f, 0f) };
 
     [SerializeField] BattleSceneManager BSM;
     [SerializeField] TextMeshProUGUI TerrainName;
@@ -28,14 +35,12 @@ public class UIManager : MonoBehaviour
     [SerializeField] Transform CursorFeedbackObject;
 
     [SerializeField] Transform CursorFeedbackElement;
+    [SerializeField] CanvasGroup CursorFeedbackCG;
     [SerializeField] Transform MovementBox;
     [SerializeField] Transform EvasionBox;
 
-    [SerializeField] Animator CursorFeedbackAnimator;
-
     [SerializeField] Transform UnitOverview1;
-
-    [SerializeField] Animator UnitOverview1Animator;
+    [SerializeField] CanvasGroup UnitOverview1CG;
 
     [SerializeField] TextMeshProUGUI EntityName;
     [SerializeField] TextMeshProUGUI ClassName;
@@ -55,6 +60,8 @@ public class UIManager : MonoBehaviour
         EvasionBox.gameObject.SetActive(false);
 
         UnitOverview1.gameObject.SetActive(false);
+
+        OpenCursorFeedback();
     }
 
     #region CONTEXTMENU
@@ -84,54 +91,54 @@ public class UIManager : MonoBehaviour
             ElementType.Add(elementType[i]);
         }
 
-        ContextMenuPreSelect();
-        ContextMenuPostSelect();
+        for (int i = 0; i < UIElements.Count; i++)
+        {
+            if (i == 0)
+                UIElements[i].DOLocalMove(ContextMenuPositions[i], 0.5f).onComplete = ContextMenuOpened;
+            else
+                UIElements[i].DOLocalMove(ContextMenuPositions[i], 0.5f);
 
-        StartCoroutine(ContextMenuOpening());
+            UIElements[i].DOScale(new Vector3(1,1,1), 0.5f);
+        }
+    }
+
+    void ContextMenuOpened()
+    {
+        //tell input manager to change enum
+        InputManager.ContextMenuOpened();
+        contextMenuSelectedItem = 0;
+        currentSelected = UIElements[contextMenuSelectedItem].DOScale(new Vector3(1.5f, 1.5f, 0f), 0.5f).SetLoops(-1, LoopType.Yoyo);
+        //selected icon
     }
 
     public void CloseContextMenu()
     {
-        StartCoroutine(ContextMenuClosing());
-    }
-
-    IEnumerator ContextMenuOpening()
-    {
-        //delay
-        yield return new WaitForSeconds(0.4f);
-        //tell input manager to change enum
-        InputManager.ContextMenuOpened();
-    }
-
-    IEnumerator ContextMenuClosing()
-    {
         //set animator triggers
-        foreach (var animator in animators)
-        {
-            animator.SetTrigger("Close");
-        }
         //delay
-        yield return new WaitForSeconds(0.4f);
+        //yield return new WaitForSeconds(0.4f);
         //destroy transforms
+        currentSelected.Kill();
+        for (int i = 0; i < UIElements.Count; i++)
+        {
+            if (i == 0)
+                UIElements[i].DOLocalMove(new Vector3(0, 0, 0), 0.5f).onComplete = ContextMenuClosed;
+            else
+                UIElements[i].DOLocalMove(new Vector3(0, 0, 0), 0.5f);
+
+            UIElements[i].DOScale(new Vector3(0, 0, 0), 0.5f);
+        }
+    }
+
+    void ContextMenuClosed()
+    {
         DestroyContextMenuElements();
         InputManager.ContextMenuClosed();
     }
 
-    public void ContextMenuPreSelect()
-    {
-        animators[contextMenuSelectedItem].ResetTrigger("Selected");
-        animators[contextMenuSelectedItem].SetTrigger("Deselected");
-    }
-
-    public void ContextMenuPostSelect()
-    {
-        animators[contextMenuSelectedItem].ResetTrigger("Deselected");
-        animators[contextMenuSelectedItem].SetTrigger("Selected");
-    }
 
     public void ContextMenuInput(Direction dir)
     {
-        ContextMenuPreSelect();
+        int prevIndex = contextMenuSelectedItem;
 
         switch (dir)
         {
@@ -154,7 +161,9 @@ public class UIManager : MonoBehaviour
                 break;
         }
 
-        ContextMenuPostSelect();
+        currentSelected.Kill();
+        UIElements[prevIndex].DOScale(new Vector3(1.0f, 1.0f, 1.0f), 0.25f);
+        currentSelected = UIElements[contextMenuSelectedItem].DOScale(new Vector3(1.5f, 1.5f, 0f), 0.5f).SetLoops(-1, LoopType.Yoyo);
     }
 
     public void DestroyContextMenuElements()
@@ -174,7 +183,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public IEnumerator ContextMenuIconSelected()
+    public void ContextMenuIconSelected()
     {
         string type = ElementType[contextMenuSelectedItem];
         Debug.Log(type);
@@ -195,14 +204,8 @@ public class UIManager : MonoBehaviour
 
                 contextMenuSelectedItem = 0;
 
-                foreach (var animator in animators)
-                {
-                    animator.SetTrigger("Close");
-                }
-
-                yield return new WaitForSeconds(0.4f);
-
-                DestroyContextMenuElements();
+                CloseContextMenu();
+                //DestroyContextMenuElements();
                 InputManager.ContextMenuStay();
                 
                 break;
@@ -240,29 +243,52 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public IEnumerator CursorFeedbackEnter()
+    public void OpenCursorFeedback()
     {
-        yield return new WaitForSeconds(0.0f);
+        CursorFeedbackElement.DOLocalMoveX(-730f, 0.5f);
+        CursorFeedbackCG.DOFade(1f, 0.5f);
     }
 
-    public IEnumerator CursorFeedbackExit()
+    public void CloseCursorFeedback()
     {
-        CursorFeedbackAnimator.SetTrigger("MenuLeave");
-
-        yield return new WaitForSeconds(0.4f);
-
-        CursorFeedbackElement.gameObject.SetActive(false);
+        CursorFeedbackElement.DOLocalMoveX(-900f, 0.5f);
+        CursorFeedbackCG.DOFade(0f, 0.5f);
     }
+
 
     #endregion
 
     #region UNITOVERVIEW
 
-    public IEnumerator UnitOverviewOne(Unit unit)
+    public void UnitOverviewOne(Unit unit)
     {
         UnitOverview1.gameObject.SetActive(true);
+        //StartCoroutine(CursorFeedbackExit());
+        //populate menu
 
-        yield return new WaitForSeconds(0.4f);
+        EntityName.text = unit.EntityName;
+        ClassName.text = unit.EntityClass.ToString();
+        Health.text = unit.EntityStats.CurrentHealth.ToString() + "/" + unit.EntityStats.MaxHealth.ToString();
+        Movement.text = unit.MaxMove.ToString();
+
+        Attack.text = unit.EntityStats.Attack.ToString();
+        Defence.text = unit.EntityStats.Defence.ToString();
+        Dexterity.text = unit.EntityStats.Dexterity.ToString();
+        Aether.text = unit.EntityStats.Aether.ToString();
+        Faith.text = unit.EntityStats.Faith.ToString();
+        Forfeit.text = unit.EntityStats.Forfeit.ToString();
+
+        CameraFollow.CameraState = CameraState.SELECTING_UNIT_OVERVIEW;
+
+        UnitOverview1.DOLocalMoveX(575f, 0.5f).onComplete = Test;
+        UnitOverview1CG.DOFade(1f, 0.5f);
+        CloseCursorFeedback();
+    }
+
+    void Test()
+    {
+        CameraFollow.CameraState = CameraState.UNIT_OVERVIEW;
+        InputManager.UnitOverviewOpen();
     }
 
     public void UnitOverviewTwo(Unit unit)
@@ -270,6 +296,31 @@ public class UIManager : MonoBehaviour
 
     }
 
+    public void UnitOverviewExit()
+    {
+        CameraFollow.CameraState = CameraState.DESELECTING_UNIT_OVERVIEW;
+
+        CursorFeedbackElement.gameObject.SetActive(true);
+
+        //UnitOverview1Animator.SetTrigger("MenuLeave");
+
+        UnitOverview1.DOLocalMoveX(850f, 0.5f).onComplete = Test2;
+        UnitOverview1CG.DOFade(0f, 0.5f);
+        OpenCursorFeedback();
+    }
+
+    void Test2()
+    {
+        UnitOverview1.gameObject.SetActive(false);
+        CameraFollow.CameraState = CameraState.FOLLOW_CURSOR;
+        InputManager.UnitOverviewClosed();
+    }
+
     #endregion
+
+    public CameraState GetCamState()
+    {
+        return CameraFollow.CameraState;
+    }
 
 }

@@ -6,8 +6,6 @@ namespace N_Entity
 {
     public class Unit : Entity
     {
-
-
         public Unit()
         {
 
@@ -19,6 +17,10 @@ namespace N_Entity
             EntityStats = stats;
             EntitySprite = spriteRenderer;
             EntityTransform = transform;
+
+            MaxMove = 4;
+            EntityName = "Sneed";
+            EntityClass = EntityClass.Knight;
         }
     }
 }

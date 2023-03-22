@@ -4,15 +4,18 @@ using UnityEngine;
 
 namespace N_Entity
 {
-    public enum ENTITY_CLASS  //COULD MAKE THIS ITS OWN CLASS LATER
+    public enum EntityClass  //COULD MAKE THIS ITS OWN CLASS LATER
     {
-        KNIGHT,
-        MAGE
+        Knight,
+        Mage
     }
 
     public abstract class Entity
     {
         public int ID { get; protected set; }
+        public int MaxMove { get; protected set; }
+        public string EntityName { get; protected set; }
+        public EntityClass EntityClass { get; protected set; }
         public Stats EntityStats { get; protected set; }
         public SpriteRenderer EntitySprite { get; protected set; }
         public Transform EntityTransform { get; protected set; }
@@ -25,20 +28,7 @@ namespace N_Entity
     public struct Stats
     {
         public int MaxHealth { get; private set; }
-        private int _currentHealth;
-        public int CurrentHealth 
-        { 
-            get => _currentHealth;
-            set 
-            {
-                int newHealth = _currentHealth - (int)value;
-
-                if (newHealth < 0)
-                    newHealth = 0;
-                else
-                    _currentHealth = newHealth;
-            } 
-        }
+        public int CurrentHealth { get; private set; }
         public int Attack { get; private set; }
         public int Defence { get; private set; }
         public int Aether { get; private set; }
@@ -56,8 +46,7 @@ namespace N_Entity
             Dexterity = dexterity;
             Forfeit = forfeit;
 
-            _currentHealth = MaxHealth;
-            CurrentHealth = _currentHealth;
+            CurrentHealth = MaxHealth;
         }
     }
 }

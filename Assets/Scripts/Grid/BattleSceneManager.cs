@@ -104,7 +104,7 @@ public class BattleSceneManager : MonoBehaviour
             Vector3 pos = new Vector3(indexes[i].Item1 * indexSizeMultiplier, 0, indexes[i].Item2 * indexSizeMultiplier);
             Transform entityObject = (Instantiate(EntityPrefab, pos, Quaternion.identity));
             entityAnchors[i] = Instantiate(EntityAnchorPrefab, pos, Quaternion.identity);
-            Stats stats = new Stats(5, 5, 5, 5, 5, 5, 5);
+            Stats stats = new Stats(20, 13, 8, 11, 3, 7, 2);
             units[i] = new Unit(i, stats, entityObject.Find("EntitySprite").GetComponentInChildren<SpriteRenderer>(), entityObject);
             grid.Tiles[indexes[i].Item1, indexes[i].Item2].SetOccupant(units[i].EntityTransform);
         }
