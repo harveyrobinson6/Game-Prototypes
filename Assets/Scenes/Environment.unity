@@ -123,17 +123,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!114 &24517349 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4721936578709280340, guid: 3f4c65cd745a83b4894e084a4b23a42d, type: 3}
-  m_PrefabInstance: {fileID: 1832715897}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ff1f243f84458b46885710f3c750a15, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &24517350 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4721936578709280341, guid: 3f4c65cd745a83b4894e084a4b23a42d, type: 3}
@@ -567,7 +556,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &773783419
 GameObject:
@@ -685,8 +674,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TilePrefab: {fileID: 8452988838587344973, guid: b16275cd950c9aa4e86f9a20a03efb81, type: 3}
+  EntityPrefab: {fileID: 0}
+  EntityAnchorPrefab: {fileID: 0}
+  GhostEntityPrefab: {fileID: 0}
+  InputManager: {fileID: 0}
+  BattleObject: {fileID: 0}
+  CameraFollow: {fileID: 0}
   w: 10
   h: 5
+  ghostSprite: {fileID: 0}
+  blockSprite: {fileID: 0}
+  AttackSpritePrompt: {fileID: 0}
+  WeaponSprites: []
+  ghostSprites: []
 --- !u!114 &833633965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -699,7 +699,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dde557fa2c0f934458eeef4f94d579a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cursor: {fileID: 24517349}
+  BSM: {fileID: 0}
+  UIManager: {fileID: 0}
+  Cursor: {fileID: 0}
+  uiprefabs: []
+  sprites: []
+  cursorAnchor: {fileID: 0}
 --- !u!4 &833633966
 Transform:
   m_ObjectHideFlags: 0
@@ -979,7 +984,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 10
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1556026715
 GameObject:

@@ -10,25 +10,53 @@ namespace N_Entity
         Mage
     }
 
+    public enum EntityStatus
+    {
+        ALIVE,
+        STASIS,
+        DEAD
+    }
+
     public abstract class Entity
     {
         public int ID { get; protected set; }
         public int MaxMove { get; protected set; }
+        public int SelectedWeapon { get; protected set; }
         public string EntityName { get; protected set; }
         public EntityClass EntityClass { get; protected set; }
+        public EntityStatus EntityStatus { get; protected set; }
         public Stats EntityStats { get; protected set; }
+        public List<Weapon> Weapons { get; protected set; }
         public SpriteRenderer EntitySprite { get; protected set; }
         public Transform EntityTransform { get; protected set; }
         public Transform EntityAnchorTransform { get; protected set; }
 
-        //ANIMATION STUFF
+        public void NewWeaponSelected(int ID)
+        {
+            SelectedWeapon = ID;
+        }
 
+        public void EntityDead()
+        {
+            //set enum
+            EntityStatus = EntityStatus.DEAD;
+            //move transform and anchor somewhere
+            EntityTransform.position = new Vector3(-100, 0, 0);
+            EntityAnchorTransform.position = new Vector3(-100, 0, 0);
+        }
+
+        public void TakeDamage(int _damage)
+        {
+            int damage = (int)Mathf.Clamp(_damage, 0, EntityStats.CurrentHealth);
+
+            EntityStats.TakeDamage(damage);
+        }
     }
 
-    public struct Stats
+    public class Stats
     {
         public int MaxHealth { get; private set; }
-        public int CurrentHealth { get; private set; }
+        public int CurrentHealth { get; set; }
         public int Attack { get; private set; }
         public int Defence { get; private set; }
         public int Aether { get; private set; }
@@ -47,6 +75,10 @@ namespace N_Entity
             Forfeit = forfeit;
 
             CurrentHealth = MaxHealth;
+        }
+        public void TakeDamage(int damage)
+        {
+            CurrentHealth -= damage;
         }
     }
 }

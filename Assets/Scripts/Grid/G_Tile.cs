@@ -17,7 +17,10 @@ namespace N_Grid
     {
         Meadows,
         Swamp,
-        Forest
+        Forest,
+        Graveyard,
+        Bridge,
+        River
     }
 
     public class G_Tile
@@ -36,34 +39,31 @@ namespace N_Grid
 
         }
 
-        public G_Tile(int w, int h, int coEff, List<(int, int)> adjList, SpriteRenderer sr)
+        public G_Tile(int w, int h, int coEff, List<(int, int)> adjList, SpriteRenderer sr, TileType tileType, OccupationStatus occupation)
         {
             TileWIndex = w;
             TileHIndex = h;
 
-            TileWorldPos = new Vector3(TileWIndex * coEff, 0, TileHIndex * coEff);
+            TileWorldPos = new Vector3(TileWIndex * coEff, -1.4f, TileHIndex * coEff);
 
-            OccupationState = OccupationStatus.OPEN; //CHANGE THIS
+            OccupationState = occupation;
 
-            System.Random rnd = new System.Random();
-            int i = rnd.Next(4);
-            if (i == 0)
-                TileType = TileType.Meadows;
-            else if (i == 1)
-                TileType = TileType.Swamp;
-            else if (i == 2)
-                TileType = TileType.Forest;
-
-            //TileType = TileType.Swamp;
+            TileType = tileType;
 
             AdjacencyList = adjList;
 
             GhostSpriteRend = sr;
         }
 
-        public void SetOccupant(Transform occ)
+        public void SetUnitOccupant(Transform occ)
         {
             OccupationState = OccupationStatus.UNITOCCUPIED;
+            TileOccupant = occ;
+        }
+
+        public void SetEnemyOccupant(Transform occ)
+        {
+            OccupationState = OccupationStatus.ENEMYOCCUPIED;
             TileOccupant = occ;
         }
 
@@ -73,9 +73,9 @@ namespace N_Grid
             OccupationState = OccupationStatus.OPEN;
         }
 
-        public void DEBUG_OCCUPY()
+        public void DEBUG_OCCUPY(OccupationStatus occ)
         {
-            OccupationState = OccupationStatus.UNITOCCUPIED;
+            OccupationState = occ;
         }
 
         public void SetGhostSprite(Sprite sprite)

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class BackgroundScroll : MonoBehaviour
 {
@@ -9,8 +10,9 @@ public class BackgroundScroll : MonoBehaviour
 
     float cloudSpeed = 0.3f;
 
-    [SerializeField]Transform bg1;
-    [SerializeField]Transform bg2;
+    [SerializeField] Transform bg1;
+    [SerializeField] Transform bg2;
+    [SerializeField] Transform bg3;
 
     private void Start()
     {

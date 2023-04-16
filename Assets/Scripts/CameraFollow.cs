@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 
 public enum CameraState
 {
@@ -8,17 +9,22 @@ public enum CameraState
     FOLLOW_CURSOR,
     SELECTING_UNIT_OVERVIEW,
     DESELECTING_UNIT_OVERVIEW,
-    UNIT_OVERVIEW
+    UNIT_OVERVIEW,
+    //BATTLE_FORECAST,
+    BATTLE
 }
 
 public class CameraFollow : MonoBehaviour
 {
-    [SerializeField] Transform cursor;
-    [SerializeField] Transform cam;
+    //[SerializeField] Transform cursor;
+    //[SerializeField] Transform cam;
 
-    [SerializeField] float smoothSpeed = 10f;
-    [SerializeField] Vector3 offset;
-    [SerializeField] Vector3 UnitOverviewPos;
+    [SerializeField] CinemachineFreeLook MainCamera;
+    [SerializeField] CinemachineVirtualCamera UnitOverviewCamera;
+    [SerializeField] CinemachineVirtualCamera BattleCamera;
+    //[SerializeField] CinemachineVirtualCamera BattleForecastCamera;
+
+    [SerializeField] Vector3 unitOverviewOffset;
 
     public CameraState CameraState;
 
@@ -26,45 +32,50 @@ public class CameraFollow : MonoBehaviour
     {
         CameraState = CameraState.FOLLOW_CURSOR;
     }
-
-    private void FixedUpdate()
+    
+    public void MoveToUnitOverview(Transform lookAt)
     {
-        switch (CameraState)
-        {
-            case CameraState.NONE:
-                break;
+        UnitOverviewCamera.LookAt = lookAt;
+        Vector3 newPos = lookAt.position;
+        newPos = newPos + unitOverviewOffset;
+        UnitOverviewCamera.transform.position = newPos;
 
-            case CameraState.FOLLOW_CURSOR:
+        CameraState = CameraState.UNIT_OVERVIEW;
+        MainCamera.Priority = 0;
+        UnitOverviewCamera.Priority = 1;
+        BattleCamera.Priority = 0;
+        //BattleForecastCamera.Priority = 0;
+    }
 
-                {
-                    Vector3 desriedPos = cursor.position + offset;
-                    Vector3 smoothedPos = Vector3.Lerp(transform.position, desriedPos, smoothSpeed * Time.deltaTime);
-                    transform.position = smoothedPos;
-                }
+    public void MoveToBattle()
+    {
+        CameraState = CameraState.BATTLE;
+        MainCamera.Priority = 0;
+        UnitOverviewCamera.Priority = 0;
+        BattleCamera.Priority = 1;
+        //BattleForecastCamera.Priority = 0;
+    }
+    /*
+    public void MoveToBattleForecast()
+    {
+        CameraState = CameraState.BATTLE_FORECAST;
+        MainCamera.Priority = 0;
+        UnitOverviewCamera.Priority = 0;
+        BattleCamera.Priority = 0;
+        BattleForecastCamera.Priority = 1;
+    }
+    */
+    public void MoveToGrid()
+    {
+        CameraState = CameraState.FOLLOW_CURSOR;
+        MainCamera.Priority = 1;
+        UnitOverviewCamera.Priority = 0;
+        BattleCamera.Priority = 0;
+        //BattleForecastCamera.Priority = 0;
+    }
 
-                break;
-
-            case CameraState.SELECTING_UNIT_OVERVIEW:
-
-                {
-                    Vector3 desiredPos = cursor.position + UnitOverviewPos;
-                    Vector3 smoothedPos = Vector3.Lerp(cam.position, desiredPos, smoothSpeed * Time.deltaTime);
-                    cam.position = smoothedPos;
-                }
-
-                break;
-
-            case CameraState.DESELECTING_UNIT_OVERVIEW:
-
-                {
-                    Vector3 smoothedPos = Vector3.Lerp(cam.position, transform.position, smoothSpeed * Time.deltaTime);
-                    cam.position = smoothedPos;
-                }
-
-                break;
-
-            case CameraState.UNIT_OVERVIEW:
-                break;
-        }
+    public void NewCameraVal(float val)
+    {
+        MainCamera.m_YAxis.Value = val;
     }
 }

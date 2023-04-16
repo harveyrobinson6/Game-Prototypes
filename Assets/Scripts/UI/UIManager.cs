@@ -5,6 +5,7 @@ using TMPro;
 using N_Grid;
 using N_Entity;
 using DG.Tweening;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -12,6 +13,13 @@ public class UIManager : MonoBehaviour
     [SerializeField] CameraFollow CameraFollow;
 
     Tween currentSelected;
+    Tween UnitFlashBar;
+    Tween EnemyFlashBar;
+
+    int weaponCycle = 0;
+
+    Unit currentUnit;
+    Enemy currentEnemy;
 
     int contextMenuSelectedItem = 0;
     List<Animator> animators;
@@ -23,8 +31,8 @@ public class UIManager : MonoBehaviour
     List<Transform> UIElements;
     List<string> ElementType;
     Transform canvas;
-    Vector3[] ContextMenuPositions = { new Vector3(0f, 2.5f, 0f), 
-                                       new Vector3(1.7f, 1.7f, 0f), 
+    Vector3[] ContextMenuPositions = { new Vector3(0f, 2.5f, 0f),
+                                       new Vector3(1.7f, 1.7f, 0f),
                                        new Vector3(2.5f, 0f, 0f) };
 
     [SerializeField] BattleSceneManager BSM;
@@ -54,12 +62,39 @@ public class UIManager : MonoBehaviour
     [SerializeField] TextMeshProUGUI Faith;
     [SerializeField] TextMeshProUGUI Forfeit;
 
+    [SerializeField] Transform BattleForecastObj;
+    [SerializeField] CanvasGroup BattleForecastCG;
+
+    [SerializeField] TextMeshProUGUI UnitHealthNum;
+    [SerializeField] TextMeshProUGUI EnemyHealthNum;
+    [SerializeField] TextMeshProUGUI UnitPower;
+    [SerializeField] TextMeshProUGUI EnemyPower;
+    [SerializeField] TextMeshProUGUI UnitAccuracy;
+    [SerializeField] TextMeshProUGUI EnemyAccuracy;
+    [SerializeField] TextMeshProUGUI UnitCrit;
+    [SerializeField] TextMeshProUGUI EnemyCrit;
+
+    [SerializeField] Transform CycleWeapon1Trans;
+    [SerializeField] Transform CycleWeapon2Trans;
+    [SerializeField] TextMeshProUGUI CycleWeapon1;
+    [SerializeField] TextMeshProUGUI CycleWeapon2;
+    [SerializeField] TextMeshProUGUI EnemyWeapon;
+
+    [SerializeField] Image unitBarMask;
+    [SerializeField] Image enemyBarMask;
+    [SerializeField] Image unitBarMaskPotential;
+    [SerializeField] Image enemyBarMaskPotential;
+
+    [SerializeField] CanvasGroup UnitBarFlash;
+    [SerializeField] CanvasGroup EnemyBarFlash;
+
     private void Start()
     {
         MovementBox.gameObject.SetActive(false);
         EvasionBox.gameObject.SetActive(false);
 
         UnitOverview1.gameObject.SetActive(false);
+        BattleForecastObj.gameObject.SetActive(false);
 
         OpenCursorFeedback();
     }
@@ -134,7 +169,6 @@ public class UIManager : MonoBehaviour
         DestroyContextMenuElements();
         InputManager.ContextMenuClosed();
     }
-
 
     public void ContextMenuInput(Direction dir)
     {
@@ -268,6 +302,7 @@ public class UIManager : MonoBehaviour
 
         EntityName.text = unit.EntityName;
         ClassName.text = unit.EntityClass.ToString();
+        Debug.Log(unit.EntityStats.CurrentHealth);
         Health.text = unit.EntityStats.CurrentHealth.ToString() + "/" + unit.EntityStats.MaxHealth.ToString();
         Movement.text = unit.MaxMove.ToString();
 
@@ -278,14 +313,14 @@ public class UIManager : MonoBehaviour
         Faith.text = unit.EntityStats.Faith.ToString();
         Forfeit.text = unit.EntityStats.Forfeit.ToString();
 
-        CameraFollow.CameraState = CameraState.SELECTING_UNIT_OVERVIEW;
+        CameraFollow.MoveToUnitOverview(unit.EntityTransform);
 
-        UnitOverview1.DOLocalMoveX(575f, 0.5f).onComplete = Test;
+        UnitOverview1.DOLocalMoveX(575f, 0.5f).onComplete = UnitOverviewOpened;
         UnitOverview1CG.DOFade(1f, 0.5f);
         CloseCursorFeedback();
     }
 
-    void Test()
+    void UnitOverviewOpened()
     {
         CameraFollow.CameraState = CameraState.UNIT_OVERVIEW;
         InputManager.UnitOverviewOpen();
@@ -304,16 +339,253 @@ public class UIManager : MonoBehaviour
 
         //UnitOverview1Animator.SetTrigger("MenuLeave");
 
-        UnitOverview1.DOLocalMoveX(850f, 0.5f).onComplete = Test2;
+        UnitOverview1.DOLocalMoveX(850f, 0.5f).onComplete = UnitOverviewExited;
         UnitOverview1CG.DOFade(0f, 0.5f);
         OpenCursorFeedback();
     }
 
-    void Test2()
+    void UnitOverviewExited()
     {
         UnitOverview1.gameObject.SetActive(false);
-        CameraFollow.CameraState = CameraState.FOLLOW_CURSOR;
+        CameraFollow.MoveToGrid();
         InputManager.UnitOverviewClosed();
+    }
+
+    #endregion
+
+    #region BATTLEFORECAST
+
+    public void BattleForecast(int unitID, int enemyID)
+    {
+        currentUnit = BSM.units[unitID];
+        currentEnemy = BSM.enemies[enemyID];
+
+        weaponCycle = currentUnit.SelectedWeapon;
+
+        //set active
+        BattleForecastObj.gameObject.SetActive(true);
+        //set texts
+        //check whether the player is using a physcial or magic weapon
+        SetBattleForecastData();
+
+        CycleWeapon1.text = currentUnit.Weapons[weaponCycle].Name;
+        CycleWeapon2.text = "";
+        EnemyWeapon.text = currentEnemy.Weapons[currentEnemy.SelectedWeapon].Name;
+
+        UnitBarFlash.alpha = 1;
+        EnemyBarFlash.alpha = 1;
+
+        //tween
+
+        BattleForecastObj.DOLocalMoveX(400f, 0.5f).onComplete = BattleForecastOpened;
+        BattleForecastCG.DOFade(1f, 0.5f);
+
+        //tell cam to do sum
+
+        CloseCursorFeedback();
+    }
+
+    public void AcceptBattle()
+    {
+        //close thing
+        BSM.units[currentUnit.ID].NewWeaponSelected(weaponCycle);
+        CameraFollow.MoveToBattle();
+        BattleForecastExit(true);
+    }
+
+    void BattleForecastOpened()
+    {
+        InputManager.BattleForecast();
+    }
+
+    public void BattleForecastExit(bool battle)
+    {
+        UnitFlashBar.Kill();
+        EnemyFlashBar.Kill();
+
+        if (battle)
+            BattleForecastObj.DOLocalMoveX(600f, 0.1f).onComplete = BattleForecastClosedBattle;
+        else
+            BattleForecastObj.DOLocalMoveX(600f, 0.1f).onComplete = BattleForecastClosedReturn;
+
+        BattleForecastCG.DOFade(0f, 0.1f);
+    }
+
+    void BattleForecastClosedBattle()
+    {
+        BattleForecastObj.gameObject.SetActive(false);
+        BSM.Startbattle(currentUnit, currentEnemy, InitalAttacker.UNIT);
+    }
+
+    void BattleForecastClosedReturn()
+    {
+        BattleForecastObj.gameObject.SetActive(false);
+        InputManager.BattleForecastClosed();
+    }
+
+    public void BattleFirecastWeaponScroll(BumperDirection dir, int unitID)
+    {
+        InputManager.IgnoreInput();
+        Unit unit = BSM.units[unitID];
+
+        //set second textmesh to old weapon name, set position to middle
+
+        CycleWeapon2.text = CycleWeapon1.text;
+        CycleWeapon2Trans.localPosition = new Vector3(0, 0, 0);
+
+        switch (dir)
+        {
+            case BumperDirection.LEFT:
+                //set first textmesh to right
+                CycleWeapon1Trans.localPosition = new Vector3(375, 0, 0);
+                //text move from right to center
+
+                if (weaponCycle == unit.Weapons.Count - 1)
+                    weaponCycle = 0;
+                else
+                    weaponCycle++;
+
+                CycleWeapon1.text = unit.Weapons[weaponCycle].Name;
+                CycleWeapon2Trans.DOLocalMoveX(-375, 0.1f);
+                CycleWeapon1Trans.DOLocalMoveX(0, 0.1f).onComplete = BattleFirecastWeaponCallback;
+
+                break;
+            case BumperDirection.RIGHT:
+                //set first textmesh to left
+                CycleWeapon1Trans.localPosition = new Vector3(-375, 0, 0);
+                //text move from left to center
+
+                if (weaponCycle == 0)
+                    weaponCycle = unit.Weapons.Count - 1;
+                else
+                    weaponCycle--;
+
+                CycleWeapon1.text = unit.Weapons[weaponCycle].Name;
+                CycleWeapon2Trans.DOLocalMoveX(375, 0.1f);
+                CycleWeapon1Trans.DOLocalMoveX(0, 0.1f).onComplete = BattleFirecastWeaponCallback;
+
+                break;
+        }
+
+        //-move hideen text to right set text to next weapon, move both text
+        //-move hideen text to left set text to next weapon, move both text
+
+        //tween
+    }
+
+    void SetBattleForecastData()
+    {
+        Weapon unitWeapon = currentUnit.Weapons[weaponCycle];
+        Weapon enemyWeapon = currentEnemy.Weapons[currentEnemy.SelectedWeapon];
+
+        int unitPowerVal = 0;
+        int enemyPowerVal = 0;
+
+        switch (unitWeapon.AttackType)
+        {
+            case AttackType.MELEE:
+
+                unitPowerVal = ((currentUnit.EntityStats.Attack + unitWeapon.Power) / 2) - currentEnemy.EntityStats.Defence;
+
+                break;
+            case AttackType.MAGIC:
+
+                unitPowerVal = ((currentUnit.EntityStats.Aether + unitWeapon.Power) / 2) - currentEnemy.EntityStats.Faith;
+
+                break;
+        }
+
+        switch (enemyWeapon.AttackType)
+        {
+            case AttackType.MELEE:
+
+                enemyPowerVal = ((currentEnemy.EntityStats.Attack + enemyWeapon.Power) / 2) - currentUnit.EntityStats.Defence;
+
+                break;
+            case AttackType.MAGIC:
+
+                enemyPowerVal = ((currentEnemy.EntityStats.Aether + enemyWeapon.Power) / 2) - currentUnit.EntityStats.Faith;
+
+                break;
+        }
+
+        
+        int unitAccuracyVal = (currentUnit.EntityStats.Dexterity + unitWeapon.Accuracy);
+        unitAccuracyVal = Mathf.Clamp(unitAccuracyVal, 0, 100);
+        int unitCriticalVal = ((currentUnit.EntityStats.Dexterity - currentUnit.EntityStats.Forfeit * 2) + unitWeapon.Crit);
+        unitCriticalVal = Mathf.Clamp(unitCriticalVal, 0, 100);
+
+        int enemyAccuracyVal = (currentEnemy.EntityStats.Dexterity + enemyWeapon.Accuracy);
+        enemyAccuracyVal = Mathf.Clamp(enemyAccuracyVal, 0, 100);
+        int enemyCriticalVal = ((currentEnemy.EntityStats.Dexterity - currentEnemy.EntityStats.Forfeit * 2) + enemyWeapon.Crit);
+        enemyCriticalVal = Mathf.Clamp(enemyCriticalVal, 0, 100);
+
+        UnitPower.text = unitPowerVal.ToString();
+        UnitAccuracy.text = unitAccuracyVal.ToString();
+        UnitCrit.text = unitCriticalVal.ToString();
+
+        EnemyPower.text = enemyPowerVal.ToString();
+        EnemyAccuracy.text = enemyAccuracyVal.ToString();
+        EnemyCrit.text = enemyCriticalVal.ToString();
+
+        int unitpotentialHealth = currentUnit.EntityStats.CurrentHealth - enemyPowerVal;
+        unitpotentialHealth = Mathf.Clamp(unitpotentialHealth, 0, currentUnit.EntityStats.MaxHealth);
+
+        int enemypotentialHealth = currentEnemy.EntityStats.CurrentHealth - unitPowerVal;
+        enemypotentialHealth = Mathf.Clamp(enemypotentialHealth, 0, currentEnemy.EntityStats.MaxHealth);
+
+        UnitHealthNum.text = unitpotentialHealth.ToString();
+        EnemyHealthNum.text = enemypotentialHealth.ToString();
+
+        GetCurrentFills(unitpotentialHealth, enemypotentialHealth);
+    }
+
+    void BattleFirecastWeaponCallback()
+    {
+        //reset battle forecast values for new weapon matchup
+        SetBattleForecastData();
+        InputManager.BattleForecast();
+    }
+
+    void GetCurrentFills(int unitPotentialHealth, int enemyPotentialHealth)
+    {
+        {
+            float fillAmount = (float)currentUnit.EntityStats.CurrentHealth / (float)currentUnit.EntityStats.MaxHealth;
+            unitBarMaskPotential.fillAmount = fillAmount;
+
+            float fillAmountCurrentHealth = (float)unitPotentialHealth / (float)currentUnit.EntityStats.MaxHealth;
+            unitBarMask.fillAmount = fillAmountCurrentHealth;
+
+            float speed = CalcFlashSpeed(1, fillAmountCurrentHealth);
+            UnitFlashBar.Kill();
+            UnitBarFlash.alpha = 1;
+            UnitFlashBar = UnitBarFlash.DOFade(0.5f, speed).SetLoops(-1, LoopType.Yoyo);
+        }
+        {
+            float fillAmount = (float)currentEnemy.EntityStats.CurrentHealth / (float)currentEnemy.EntityStats.MaxHealth;
+            enemyBarMaskPotential.fillAmount = fillAmount;
+
+            float fillAmountCurrentHealth = (float)enemyPotentialHealth / (float)currentEnemy.EntityStats.MaxHealth;
+            enemyBarMask.fillAmount = fillAmountCurrentHealth;
+
+            float speed = CalcFlashSpeed(1, fillAmountCurrentHealth);
+            EnemyFlashBar.Kill();
+            EnemyBarFlash.alpha = 1;
+            EnemyFlashBar = EnemyBarFlash.DOFade(0.5f, speed).SetLoops(-1, LoopType.Yoyo);
+        }
+    }
+
+    float CalcFlashSpeed(int baseSpeed, float fill)
+    {
+        if (fill == 1)
+            return 0f;
+
+        if (fill == 0)
+            return 0.4f;
+
+        float speed = Mathf.Clamp(baseSpeed - (1-fill), 0.4f, 1f);
+
+        return speed;
     }
 
     #endregion

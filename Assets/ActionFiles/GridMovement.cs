@@ -89,6 +89,42 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""BumperLeft"",
+                    ""type"": ""Button"",
+                    ""id"": ""4249d55d-2590-4e6a-8958-64f40883a5fe"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""BumperRight"",
+                    ""type"": ""Button"",
+                    ""id"": ""b294cea4-f606-42bb-ab9f-4fd5973cec35"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""CameraZoomUp"",
+                    ""type"": ""Button"",
+                    ""id"": ""8bb82775-1c1c-42bc-bc73-da4f34d36bd2"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""CameraZoomDown"",
+                    ""type"": ""Button"",
+                    ""id"": ""416e5502-4c67-43ce-b6e5-b0e91683edff"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -245,6 +281,50 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                     ""action"": ""Menu"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""08800aca-dfc0-4dcd-b781-aeade35e1847"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BumperLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f2d58672-e465-4edb-9824-98b5b5b3bb9f"",
+                    ""path"": ""<Gamepad>/rightShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BumperRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""307aee0c-153f-450e-8cef-65c595dbcc91"",
+                    ""path"": ""<Gamepad>/rightStick/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraZoomUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d25d32c6-80b7-4879-87e0-57c6e44a0714"",
+                    ""path"": ""<Gamepad>/rightStick/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraZoomDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -260,6 +340,10 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         m_CursorMovement_Select = m_CursorMovement.FindAction("Select", throwIfNotFound: true);
         m_CursorMovement_Back = m_CursorMovement.FindAction("Back", throwIfNotFound: true);
         m_CursorMovement_Menu = m_CursorMovement.FindAction("Menu", throwIfNotFound: true);
+        m_CursorMovement_BumperLeft = m_CursorMovement.FindAction("BumperLeft", throwIfNotFound: true);
+        m_CursorMovement_BumperRight = m_CursorMovement.FindAction("BumperRight", throwIfNotFound: true);
+        m_CursorMovement_CameraZoomUp = m_CursorMovement.FindAction("CameraZoomUp", throwIfNotFound: true);
+        m_CursorMovement_CameraZoomDown = m_CursorMovement.FindAction("CameraZoomDown", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -326,6 +410,10 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
     private readonly InputAction m_CursorMovement_Select;
     private readonly InputAction m_CursorMovement_Back;
     private readonly InputAction m_CursorMovement_Menu;
+    private readonly InputAction m_CursorMovement_BumperLeft;
+    private readonly InputAction m_CursorMovement_BumperRight;
+    private readonly InputAction m_CursorMovement_CameraZoomUp;
+    private readonly InputAction m_CursorMovement_CameraZoomDown;
     public struct CursorMovementActions
     {
         private @GridMovement m_Wrapper;
@@ -337,6 +425,10 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         public InputAction @Select => m_Wrapper.m_CursorMovement_Select;
         public InputAction @Back => m_Wrapper.m_CursorMovement_Back;
         public InputAction @Menu => m_Wrapper.m_CursorMovement_Menu;
+        public InputAction @BumperLeft => m_Wrapper.m_CursorMovement_BumperLeft;
+        public InputAction @BumperRight => m_Wrapper.m_CursorMovement_BumperRight;
+        public InputAction @CameraZoomUp => m_Wrapper.m_CursorMovement_CameraZoomUp;
+        public InputAction @CameraZoomDown => m_Wrapper.m_CursorMovement_CameraZoomDown;
         public InputActionMap Get() { return m_Wrapper.m_CursorMovement; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -367,6 +459,18 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 @Menu.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnMenu;
                 @Menu.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnMenu;
                 @Menu.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnMenu;
+                @BumperLeft.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnBumperLeft;
+                @BumperLeft.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnBumperLeft;
+                @BumperLeft.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnBumperLeft;
+                @BumperRight.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnBumperRight;
+                @BumperRight.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnBumperRight;
+                @BumperRight.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnBumperRight;
+                @CameraZoomUp.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnCameraZoomUp;
+                @CameraZoomUp.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnCameraZoomUp;
+                @CameraZoomUp.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnCameraZoomUp;
+                @CameraZoomDown.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnCameraZoomDown;
+                @CameraZoomDown.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnCameraZoomDown;
+                @CameraZoomDown.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnCameraZoomDown;
             }
             m_Wrapper.m_CursorMovementActionsCallbackInterface = instance;
             if (instance != null)
@@ -392,6 +496,18 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 @Menu.started += instance.OnMenu;
                 @Menu.performed += instance.OnMenu;
                 @Menu.canceled += instance.OnMenu;
+                @BumperLeft.started += instance.OnBumperLeft;
+                @BumperLeft.performed += instance.OnBumperLeft;
+                @BumperLeft.canceled += instance.OnBumperLeft;
+                @BumperRight.started += instance.OnBumperRight;
+                @BumperRight.performed += instance.OnBumperRight;
+                @BumperRight.canceled += instance.OnBumperRight;
+                @CameraZoomUp.started += instance.OnCameraZoomUp;
+                @CameraZoomUp.performed += instance.OnCameraZoomUp;
+                @CameraZoomUp.canceled += instance.OnCameraZoomUp;
+                @CameraZoomDown.started += instance.OnCameraZoomDown;
+                @CameraZoomDown.performed += instance.OnCameraZoomDown;
+                @CameraZoomDown.canceled += instance.OnCameraZoomDown;
             }
         }
     }
@@ -405,5 +521,9 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         void OnSelect(InputAction.CallbackContext context);
         void OnBack(InputAction.CallbackContext context);
         void OnMenu(InputAction.CallbackContext context);
+        void OnBumperLeft(InputAction.CallbackContext context);
+        void OnBumperRight(InputAction.CallbackContext context);
+        void OnCameraZoomUp(InputAction.CallbackContext context);
+        void OnCameraZoomDown(InputAction.CallbackContext context);
     }
 }

@@ -19,6 +19,13 @@ namespace N_Grid
         CORNER3,
         CORNER4
     }
+    public enum PathEnd
+    {
+        EDIFICE,
+        UNIT,
+        ENEMY,
+        INTERACTABLE
+    }
     public struct ReturnNode
     {
         public NodeSprite NodeSprite { get; private set; }
@@ -37,9 +44,35 @@ namespace N_Grid
 
             NodeSprite = NodeSprite.NONE;
 
-            if (firstNode || lastNode)
+            if (firstNode)
             {
                 NodeSprite = NodeSprite.NONE;
+            }
+            else if (lastNode)
+            {
+                (int, int) result = (PrevNode.Item1 - Self.Item1, PrevNode.Item2 - Self.Item2);
+                Debug.Log(result);
+
+                if (result == (0, -1))
+                {
+                    //up
+                    NodeSprite = NodeSprite.ARROWUP;
+                }
+                else if (result == (0, 1))
+                {
+                    //down
+                    NodeSprite = NodeSprite.ARROWDOWN;
+                }
+                else if (result == (1, 0))
+                {
+                    //left
+                    NodeSprite = NodeSprite.ARROWLEFT;
+                }
+                else if (result == (-1, 0))
+                {
+                    //right
+                    NodeSprite = NodeSprite.ARROWRIGHT;
+                }
             }
             else
             {
@@ -126,11 +159,11 @@ namespace N_Grid
                 }
             }
 
-            Debug.Log("Self= " + self.Item1 + ", " + self.Item2);
-            Debug.Log("Next= " + next.Item1 + ", " + next.Item2);
-            Debug.Log("Prev= " + prev.Item1 + ", " + prev.Item2);
-            Debug.Log("First = " + firstNode + "   Last = " + lastNode);
-            Debug.Log("Vertical = " + vertical + "   Horizontal = " + horizontal);
+            //Debug.Log("Self= " + self.Item1 + ", " + self.Item2);
+            //Debug.Log("Next= " + next.Item1 + ", " + next.Item2);
+            //Debug.Log("Prev= " + prev.Item1 + ", " + prev.Item2);
+            //Debug.Log("First = " + firstNode + "   Last = " + lastNode);
+            //Debug.Log("Vertical = " + vertical + "   Horizontal = " + horizontal);
 
         }
     }
@@ -158,7 +191,9 @@ namespace N_Grid
                 (int, int) v = queue.Dequeue();
                 foreach (var w in grid.GetAdjacency(v))
                 {
-                    if (grid.Tiles[w.Item1, w.Item2].OccupationState != OccupationStatus.OPEN)
+                    if (grid.Tiles[w.Item1, w.Item2].OccupationState == OccupationStatus.ENEMYOCCUPIED ||
+                        grid.Tiles[w.Item1, w.Item2].OccupationState == OccupationStatus.EDIFICE ||
+                        grid.Tiles[w.Item1, w.Item2].OccupationState == OccupationStatus.OUTOFBOUNDS)
                         continue;
 
                     //Debug.Log(w.Item1 + " " + w.Item2);
@@ -178,7 +213,7 @@ namespace N_Grid
             return _marked[v.Item1, v.Item2];
         }
 
-        public ReturnNode[] PathTo((int, int) v)
+        public List<ReturnNode> PathTo((int, int) v)
         {
             Stack<(int, int)> stack = new Stack<(int, int)>();
 
@@ -192,7 +227,8 @@ namespace N_Grid
             }
 
             List<(int, int)> stackList = stack.ToList<(int, int)>();
-            ReturnNode[] rtnAry = new ReturnNode[stack.Count];
+            //ReturnNode[] rtnAry = new ReturnNode[stack.Count];  //change to list
+            List<ReturnNode> rtnList = new List<ReturnNode>();
 
             if (stackList.Count != 0)
             {
@@ -200,22 +236,23 @@ namespace N_Grid
                 {
                     if (i == 0)
                     {
-                        rtnAry[i] = new ReturnNode(true, false, stackList[i], (0, 0), stackList.Last());
+                        //rtnAry[i] = new ReturnNode(true, false, stackList[i], (0, 0), stackList.Last());
+                        rtnList.Add(new ReturnNode(true, false, stackList[i], (0, 0), stackList.Last()));
                     }
                     else if (i == stackList.Count - 1)
                     {
-
-                        rtnAry[i] = new ReturnNode(false, true, stackList[i], stackList[i - 1], (0, 0));
+                        //rtnAry[i] = new ReturnNode(false, true, stackList[i], stackList[i - 1], (0, 0));
+                        rtnList.Add(new ReturnNode(false, true, stackList[i], stackList[i - 1], (0, 0)));
                     }
                     else
                     {
-
-                        rtnAry[i] = new ReturnNode(false, false, stackList[i], stackList[i - 1], stackList[i+1]);
+                        //rtnAry[i] = new ReturnNode(false, false, stackList[i], stackList[i - 1], stackList[i+1]);
+                        rtnList.Add(new ReturnNode(false, false, stackList[i], stackList[i - 1], stackList[i + 1]));
                     }
                 }
             }
 
-            return rtnAry;
+            return rtnList;
         }
     }
 }

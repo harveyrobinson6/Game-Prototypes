@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using N_Grid;
 using N_Entity;
+using DG.Tweening;
+using static UnityEngine.InputSystem.InputAction;
 
 enum InputState
 {
@@ -14,6 +16,8 @@ enum InputState
     PICKUP_UP_UNIT,
     UNIT_MOVING,
     CUSOR_MOVING,
+    ATTACK_PROMPT,
+    BATTLE_FORECAST,
     NO_INPUT
 }
 
@@ -25,6 +29,25 @@ public enum Direction
     RIGHT
 }
 
+public enum BumperDirection
+{
+    LEFT,
+    RIGHT
+}
+
+public enum StickDirection
+{
+    UP,
+    DOWN
+}
+
+public enum RightStickState
+{
+    NONE,
+    UP,
+    DOWN
+}
+
 public class InputManager : MonoBehaviour
 {
     GridMovement GridMovement;
@@ -34,7 +57,8 @@ public class InputManager : MonoBehaviour
     Transform SelectedUnit = null;
     [SerializeField] Transform Cursor;
 
-    int contextMenuSelectedItem = 0;
+    [SerializeField] CameraFollow CameraFollow;
+    float camVal = 0.5f;
 
     List<Animator> animators;
 
@@ -54,6 +78,13 @@ public class InputManager : MonoBehaviour
     bool pickup = false;
     [SerializeField] Transform cursorAnchor;
 
+    int currentBattleUnitID;
+    int currentBattleEnemyID;
+
+    RightStickState RightStickState = RightStickState.NONE;
+
+    bool UnitCanMove = false;
+
     private void Awake()
     {
         GridMovement = new GridMovement();
@@ -66,11 +97,43 @@ public class InputManager : MonoBehaviour
         GridMovement.CursorMovement.Select.performed += ctx => Select();
         GridMovement.CursorMovement.Back.performed += ctx => Back();
         GridMovement.CursorMovement.Menu.performed += ctx => MenuKey();
+        GridMovement.CursorMovement.BumperLeft.performed += ctx => Bumpers(BumperDirection.LEFT);
+        GridMovement.CursorMovement.BumperRight.performed += ctx => Bumpers(BumperDirection.RIGHT);
+        GridMovement.CursorMovement.CameraZoomUp.performed += ctx => RightStick(ctx, StickDirection.UP);
+        GridMovement.CursorMovement.CameraZoomUp.canceled += ctx => RightStick(ctx, StickDirection.UP);
+        GridMovement.CursorMovement.CameraZoomDown.performed += ctx => RightStick(ctx, StickDirection.DOWN);
+        GridMovement.CursorMovement.CameraZoomDown.canceled += ctx => RightStick(ctx, StickDirection.DOWN);
     }
 
     private void Start()
     {
         UIManager.CursorFeedback(BSM.grid.Tiles[0,0]);  //will need to chnage when the cursor no longer starts at 0,0
+    }
+
+    private void Update()
+    {
+        switch (RightStickState)
+        {
+            case RightStickState.NONE:
+
+                //Debug.Log("NONE");
+
+                break;
+            case RightStickState.UP:
+
+                //Debug.Log("UP");
+                camVal = Mathf.Clamp(camVal + 0.01f, 0, 1);
+                CameraFollow.NewCameraVal(camVal);
+
+                break;
+            case RightStickState.DOWN:
+
+                //Debug.Log("DOWN");
+                camVal = Mathf.Clamp(camVal - 0.01f, 0, 1);
+                CameraFollow.NewCameraVal(camVal);
+
+                break;
+        }
     }
 
     private void OnEnable()
@@ -134,23 +197,24 @@ public class InputManager : MonoBehaviour
                 break;
 
             case InputState.PICKUP_UP_UNIT:
+
                 switch (dir)
                 {
                     case Direction.UP:
                         CardinalDirections(Direction.UP);
-                        BSM.CalculatePath(cursorAnchor, SelectedUnit);
+                        //BSM.CalculatePath(cursorAnchor, SelectedUnit);
                         break;
                     case Direction.DOWN:
                         CardinalDirections(Direction.DOWN);
-                        BSM.CalculatePath(cursorAnchor, SelectedUnit);
+                        //BSM.CalculatePath(cursorAnchor, SelectedUnit);
                         break;
                     case Direction.LEFT:
                         CardinalDirections(Direction.LEFT);
-                        BSM.CalculatePath(cursorAnchor, SelectedUnit);
+                        //BSM.CalculatePath(cursorAnchor, SelectedUnit);
                         break;
                     case Direction.RIGHT:
                         CardinalDirections(Direction.RIGHT);
-                        BSM.CalculatePath(cursorAnchor, SelectedUnit);
+                        //BSM.CalculatePath(cursorAnchor, SelectedUnit);
                         break;
                 }
 
@@ -161,6 +225,31 @@ public class InputManager : MonoBehaviour
                 break;
 
             case InputState.CUSOR_MOVING:
+
+                break;
+
+            case InputState.ATTACK_PROMPT:
+                Debug.Log("attackie");
+                InputState = InputState.PICKUP_UP_UNIT;
+                switch (dir)
+                {
+                    case Direction.UP:
+                        CardinalDirections(Direction.UP);
+                        //BSM.CalculatePath(cursorAnchor, SelectedUnit);
+                        break;
+                    case Direction.DOWN:
+                        CardinalDirections(Direction.DOWN);
+                        //BSM.CalculatePath(cursorAnchor, SelectedUnit);
+                        break;
+                    case Direction.LEFT:
+                        CardinalDirections(Direction.LEFT);
+                        //BSM.CalculatePath(cursorAnchor, SelectedUnit);
+                        break;
+                    case Direction.RIGHT:
+                        CardinalDirections(Direction.RIGHT);
+                        //BSM.CalculatePath(cursorAnchor, SelectedUnit);
+                        break;
+                }
 
                 break;
 
@@ -197,10 +286,13 @@ public class InputManager : MonoBehaviour
                 }
                 else
                 {
-                    //unit has moved
-                    //move unit first, then open menu
-                    InputState = InputState.NO_INPUT;
-                    BSM.GhostMoveUnit(SelectedUnit);
+                    if (UnitCanMove)
+                    {
+                        //unit has moved
+                        //move unit first, then open menu
+                        InputState = InputState.NO_INPUT;
+                        BSM.GhostMoveUnit(SelectedUnit);
+                    }
                 }
 
                 break;
@@ -210,6 +302,22 @@ public class InputManager : MonoBehaviour
                 break;
 
             case InputState.CUSOR_MOVING:
+
+                break;
+
+            case InputState.ATTACK_PROMPT:
+
+                InputState = InputState.NO_INPUT;
+                UIManager.BattleForecast(currentBattleUnitID, currentBattleEnemyID);
+                
+                Debug.Log("grrr big nasty attack");
+
+                break;
+
+            case InputState.BATTLE_FORECAST:
+
+                InputState = InputState.NO_INPUT;
+                UIManager.AcceptBattle();
 
                 break;
 
@@ -264,6 +372,18 @@ public class InputManager : MonoBehaviour
 
                 break;
 
+            case InputState.ATTACK_PROMPT:
+
+                BattleForecastClosed();
+
+                break;
+
+            case InputState.BATTLE_FORECAST:
+
+                UIManager.BattleForecastExit(false);
+
+                break;
+
             case InputState.NO_INPUT:
                 break;
         }
@@ -286,6 +406,65 @@ public class InputManager : MonoBehaviour
         else
             return;
 
+    }
+
+    void Bumpers(BumperDirection dir)
+    {
+        switch (InputState)
+        {
+            case InputState.ACCEPTING_INPUT:
+                //LIKE FIRE EMBLEM
+                //CYCLE THROUGH UNITS
+
+
+
+
+
+
+
+
+                //YE
+                break;
+
+            
+
+            case InputState.BATTLE_FORECAST:
+
+                InputState = InputState.NO_INPUT;
+                UIManager.BattleFirecastWeaponScroll(dir, currentBattleUnitID);
+
+                break;
+
+            case InputState.NO_INPUT:
+                break;
+        }
+    }
+
+    void RightStick(CallbackContext ctx, StickDirection dir)
+    {
+        if (InputState == InputState.ACCEPTING_INPUT)
+        {
+            if (ctx.performed)
+            {
+                switch (dir)
+                {
+                    case StickDirection.UP:
+
+                        RightStickState = RightStickState.UP;
+
+                        break;
+                    case StickDirection.DOWN:
+
+                        RightStickState = RightStickState.DOWN;
+
+                        break;
+                }
+            }
+            if (ctx.canceled)
+            {
+                RightStickState = RightStickState.NONE;
+            }
+        }
     }
 
     void UnitPickup(Transform cursorAnchor)
@@ -319,25 +498,55 @@ public class InputManager : MonoBehaviour
     }
     public void MoveCursor(Vector3 dir)
     {
+        //if (pickup)
+            //BSM.CalculatePath(cursorAnchor, SelectedUnit);
+
+        InputState temp = InputState;
+        Debug.Log(temp);
         Vector3 potentialPos = Cursor.position + dir;
         G_Tile tile = new G_Tile();
 
         if (BSM.grid.TileAtPos(potentialPos, out tile))
         {
+            InputState = InputState.CUSOR_MOVING;
             oldCursorPos = Cursor.position;
-            newCursorPos = potentialPos;
             cursorAnchor.position = potentialPos;
 
-            InputState = InputState.CUSOR_MOVING;
+            if (pickup)
+            {
+                InputState = temp;
+                UnitCanMove = BSM.CalculatePath(cursorAnchor, SelectedUnit);
+            }
+            else
+                InputState = InputState.ACCEPTING_INPUT;
+
+
+            Debug.Log(InputState);
+
+            Cursor.DOMove(potentialPos,0.25f).OnComplete(() =>
+            {
+                /*
+                if (pickup)
+                {
+                    InputState = temp;
+                    BSM.CalculatePath(cursorAnchor, SelectedUnit);
+                }
+                else
+                    InputState = InputState.ACCEPTING_INPUT;
+                */
+                UIManager.CursorFeedback(tile);
+            });
+
+            
             //Cursor.position = potentialPos;
-            UIManager.CursorFeedback(tile);
+            
         }
         else
             return;
     }
 
     private void FixedUpdate()
-    {
+    {/*
         if (InputState == InputState.CUSOR_MOVING)
         {
             elapsedTime += Time.deltaTime;
@@ -354,7 +563,7 @@ public class InputManager : MonoBehaviour
                 else
                     InputState = InputState.ACCEPTING_INPUT;
             }
-        }
+        }*/
     }
 
     public void ContextMenuOpened()
@@ -381,6 +590,34 @@ public class InputManager : MonoBehaviour
     {
         InputState = InputState.ACCEPTING_INPUT;
     }
+
+    public void BattleForecastClosed()
+    {
+        SelectedUnit = null;
+        pickup = false;
+        BSM.CancelGhostMove();
+        BSM.UnitDropped();
+        InputState = InputState.ACCEPTING_INPUT;
+    }
+
+    public void BattleOver()
+    {
+        SelectedUnit = null;
+        pickup = false;
+        InputState = InputState.ACCEPTING_INPUT;
+    }
+
+    public void AttackPrompt(int unitID, int enemyID)
+    {
+        InputState = InputState.ATTACK_PROMPT;
+        currentBattleUnitID = unitID;
+        currentBattleEnemyID = enemyID;
+    }
+    public void BattleForecast()
+    {
+        InputState = InputState.BATTLE_FORECAST;
+    }
+
 
     public void ContextMenuStay()
     {
