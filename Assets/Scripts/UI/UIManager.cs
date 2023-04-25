@@ -23,7 +23,7 @@ public class UIManager : MonoBehaviour
 
     int contextMenuSelectedItem = 0;
     List<Animator> animators;
-    bool[] elementEnabled = { true, true, true };
+    //bool[] elementEnabled = { true, true, true };
     string[] elementType = { "Attack", "Inventory", "Stay" };
     Queue<Transform> UIPrefabs;
     [SerializeField] Transform[] uiprefabs;
@@ -88,7 +88,26 @@ public class UIManager : MonoBehaviour
     [SerializeField] CanvasGroup UnitBarFlash;
     [SerializeField] CanvasGroup EnemyBarFlash;
 
-    private void Start()
+    [SerializeField] Transform IntroTitleCard;
+    [SerializeField] CanvasGroup IntroTitleCardCG;
+    [SerializeField] Transform IntroTopHalf;
+    [SerializeField] Transform IntroBottomHalf;
+
+    [SerializeField] Transform PlayerTurnTitleCard;
+    [SerializeField] Transform PlayerText;
+    [SerializeField] Transform TurnText;
+    [SerializeField] CanvasGroup PlayerTurnCG;
+    [SerializeField] Transform EnemyTurnTitleCard;
+    [SerializeField] Transform EnemyText;
+    [SerializeField] Transform TurnText2;
+    [SerializeField] CanvasGroup EnemyTurnCG;
+
+    private void Awake()
+    {
+        
+    }
+
+    public void GameIntro()
     {
         MovementBox.gameObject.SetActive(false);
         EvasionBox.gameObject.SetActive(false);
@@ -96,12 +115,94 @@ public class UIManager : MonoBehaviour
         UnitOverview1.gameObject.SetActive(false);
         BattleForecastObj.gameObject.SetActive(false);
 
-        OpenCursorFeedback();
+        IntroTitleCard.gameObject.SetActive(false);
+        IntroTopHalf.gameObject.SetActive(false);
+        IntroBottomHalf.gameObject.SetActive(false);
+        PlayerTurnTitleCard.gameObject.SetActive(false);
+        PlayerText.gameObject.SetActive(false);
+        TurnText.gameObject.SetActive(false);
+        EnemyTurnTitleCard.gameObject.SetActive(false);
+        EnemyText.gameObject.SetActive(false);
+        TurnText2.gameObject.SetActive(false);
+
+        IntroTitleCard.gameObject.SetActive(true);
+        IntroTopHalf.gameObject.SetActive(true);
+        IntroBottomHalf.gameObject.SetActive(true);
+
+        IntroTopHalf.transform.localPosition = new Vector3(-1309, 100, 0);
+        IntroBottomHalf.transform.localPosition = new Vector3(1309, -100, 0);
+
+        IntroTopHalf.DOLocalMoveX(0, 2f);
+
+        IntroBottomHalf.DOLocalMoveX(0, 2f).OnComplete(() =>
+        {
+            IntroTitleCardCG.DOFade(0, 2f).SetDelay(2f).OnComplete(() =>
+            {
+                IntroTitleCard.gameObject.SetActive(false);
+                IntroTopHalf.gameObject.SetActive(false);
+                IntroBottomHalf.gameObject.SetActive(false);
+
+                BSM.PlayerTurnStart();
+            });
+        });
+    }
+
+    public void PlayerTurnIntro()
+    {
+        PlayerTurnTitleCard.gameObject.SetActive(true);
+        PlayerText.gameObject.SetActive(true);
+        TurnText.gameObject.SetActive(true);
+
+        PlayerTurnCG.alpha = 1;
+
+        PlayerText.localPosition = new Vector3(-1228, 0, 0);
+        TurnText.localPosition = new Vector3(1142, 0, 0);
+
+        PlayerText.DOLocalMoveX(-200, 1f);
+        TurnText.DOLocalMoveX(250, 1f).OnComplete(() =>
+        {
+            PlayerTurnCG.DOFade(0, 1f).SetDelay(2f).OnComplete(() =>
+            {
+                PlayerTurnTitleCard.gameObject.SetActive(false);
+                PlayerText.gameObject.SetActive(false);
+                TurnText.gameObject.SetActive(false);
+
+                OpenCursorFeedback();
+                BSM.PlayerTurn();
+            });
+        });
+    }
+
+    public void EnemyTurnIntro()
+    {
+        CloseCursorFeedback();
+
+        EnemyTurnTitleCard.gameObject.SetActive(true);
+        EnemyText.gameObject.SetActive(true);
+        TurnText2.gameObject.SetActive(true);
+
+        EnemyTurnCG.alpha = 1;
+
+        EnemyText.localPosition = new Vector3(-1228, 0, 0);
+        TurnText2.localPosition = new Vector3(1142, 0, 0);
+
+        EnemyText.DOLocalMoveX(-200, 1f);
+        TurnText2.DOLocalMoveX(250, 1f).OnComplete(() =>
+        {
+            EnemyTurnCG.DOFade(0, 1f).SetDelay(2f).OnComplete(() =>
+            {
+                EnemyTurnTitleCard.gameObject.SetActive(false);
+                EnemyText.gameObject.SetActive(false);
+                TurnText2.gameObject.SetActive(false);
+
+                BSM.EnemyTurn();
+            });
+        });
     }
 
     #region CONTEXTMENU
 
-    public void OpenContextMenu(Transform unit)
+    public void OpenContextMenu(Transform unit, bool[] elementEnabled)
     {
         UIPrefabs = new Queue<Transform>();
         UIElements = new List<Transform>();
@@ -167,6 +268,7 @@ public class UIManager : MonoBehaviour
     void ContextMenuClosed()
     {
         DestroyContextMenuElements();
+        contextMenuSelectedItem = 0;
         InputManager.ContextMenuClosed();
     }
 
@@ -225,6 +327,15 @@ public class UIManager : MonoBehaviour
         switch (type)
         {
             case "Attack":
+
+                contextMenuSelectedItem = 0;
+
+                InputManager.EnemyBattleHover.gameObject.SetActive(true);
+                Vector3 newPos = InputManager.EnemyCycle[InputManager.selectedEnemy].position;
+                Debug.Log(newPos);
+                newPos.y = 3.5f;
+                InputManager.EnemyBattleHover.position = newPos;
+                InputManager.EnemyCycleMethod();
 
                 break;
 
@@ -389,7 +500,6 @@ public class UIManager : MonoBehaviour
     {
         //close thing
         BSM.units[currentUnit.ID].NewWeaponSelected(weaponCycle);
-        CameraFollow.MoveToBattle();
         BattleForecastExit(true);
     }
 

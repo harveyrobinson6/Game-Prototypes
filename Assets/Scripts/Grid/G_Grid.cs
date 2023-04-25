@@ -10,12 +10,14 @@ namespace N_Grid
         public int Height { get; private set; }
         public int IndexSizeMultiplier { get; private set; }
         public G_Tile[,] Tiles { get; private set; }
+        public bool SpritesDisplay { get; private set; }
 
         public G_Grid(int width, int height, int  ism, Transform[,] tilePrefabs)
         {
             Width = width;
             Height = height;
             IndexSizeMultiplier = ism;
+            SpritesDisplay = true;
 
             (int, int)[] forests = new (int, int)[] { (2, 7), (3, 7), (4, 7), (5, 7), (1, 8), (2, 8), (3, 8), (4, 8),
                                                      (5, 8), (6, 8), (1, 9), (2, 9), (3, 9), (4, 9), (5, 9),
@@ -110,7 +112,7 @@ namespace N_Grid
                         }
                     }
 
-                    G_Tile newTile = new G_Tile(i, j, IndexSizeMultiplier, adjList, tilePrefabs[i, j].Find("GhostSprite").GetComponentInChildren<SpriteRenderer>(), tileType, occupationStatus);
+                    G_Tile newTile = new G_Tile(i, j, IndexSizeMultiplier, adjList, tilePrefabs[i, j].Find("GhostSprite").GetComponentInChildren<SpriteRenderer>(), tileType, occupationStatus, tilePrefabs[i, j].Find("BaseTile").gameObject);
 
                     Tiles[i, j] = newTile;
                     //Debug.Log(i + ", " + j);
@@ -209,6 +211,36 @@ namespace N_Grid
             return false;
         }
 
+        public void ToggleSprites()
+        {
+            if (SpritesDisplay)
+            {
+                foreach (var tile in Tiles)
+                {
+                    tile.TileOutline.SetActive(false);
+                }
+            }
+            else
+            {
+                foreach (var tile in Tiles)
+                {
+                    tile.TileOutline.SetActive(true);
+                }
+            }
+
+            SpritesDisplay = !SpritesDisplay;
+        }
+
+        public void HideGrid()
+        {
+            foreach (var tile in Tiles)
+            {
+                tile.TileOutline.SetActive(false);
+            }
+
+            SpritesDisplay = false;
+        }
+        
         public List<(int, int)> GetAdjacency((int, int) tileIndex)
         {
             return Tiles[tileIndex.Item1, tileIndex.Item2].AdjacencyList;

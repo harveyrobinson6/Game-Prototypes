@@ -12,6 +12,7 @@ enum InputState
     ACCEPTING_INPUT,
     ONLY_MOVEMENT,
     UNIT_CONTEXT_MENU,
+    CONEXT_MENU_ENEMY_SELECT,
     UNIT_OVERVIEW_MENU,
     PICKUP_UP_UNIT,
     UNIT_MOVING,
@@ -85,6 +86,10 @@ public class InputManager : MonoBehaviour
 
     bool UnitCanMove = false;
 
+    public List<Transform> EnemyCycle { get; private set; }
+    public int selectedEnemy { get; private set; }
+    [SerializeField] public Transform EnemyBattleHover;
+
     private void Awake()
     {
         GridMovement = new GridMovement();
@@ -103,11 +108,15 @@ public class InputManager : MonoBehaviour
         GridMovement.CursorMovement.CameraZoomUp.canceled += ctx => RightStick(ctx, StickDirection.UP);
         GridMovement.CursorMovement.CameraZoomDown.performed += ctx => RightStick(ctx, StickDirection.DOWN);
         GridMovement.CursorMovement.CameraZoomDown.canceled += ctx => RightStick(ctx, StickDirection.DOWN);
+        GridMovement.CursorMovement.Toggle.performed += ctx => ToggleButton();
     }
 
     private void Start()
     {
         UIManager.CursorFeedback(BSM.grid.Tiles[0,0]);  //will need to chnage when the cursor no longer starts at 0,0
+
+        EnemyBattleHover.gameObject.SetActive(false);
+        selectedEnemy = 0;
     }
 
     private void Update()
@@ -149,7 +158,16 @@ public class InputManager : MonoBehaviour
     public void GhostMoveFinished()
     {
         InputState = InputState.UNIT_CONTEXT_MENU;
-        UIManager.OpenContextMenu(SelectedUnit);
+        ContextMenuPrep();
+    }
+
+    void ContextMenuPrep()
+    {
+        bool[] elementEnabled = new bool[] { false, true, true };
+
+        elementEnabled[0] = EnemyNearUnit(SelectedUnit);
+
+        UIManager.OpenContextMenu(SelectedUnit, elementEnabled);
     }
 
     void Cardinals(Direction dir)
@@ -194,6 +212,42 @@ public class InputManager : MonoBehaviour
 
             case InputState.UNIT_CONTEXT_MENU:
                 UIManager.ContextMenuInput(dir);
+                break;
+
+            case InputState.CONEXT_MENU_ENEMY_SELECT:
+
+                //InputState = InputState.NO_INPUT;
+
+                if (EnemyCycle.Count <= 1)
+                    return;
+
+                switch (dir)
+                {
+                    case Direction.UP:
+
+                        if (selectedEnemy == 0)
+                            selectedEnemy = EnemyCycle.Count - 1;
+                        else
+                            selectedEnemy--;
+
+                        break;
+
+                    case Direction.DOWN:
+
+                        if (selectedEnemy == EnemyCycle.Count - 1)
+                            selectedEnemy = 0;
+                        else
+                            selectedEnemy++;
+
+                        break;
+                }
+
+                EnemyBattleHover.gameObject.SetActive(true);
+                Vector3 newPos = EnemyCycle[selectedEnemy].position;
+                Debug.Log(newPos);
+                newPos.y = 3.5f;
+                EnemyBattleHover.position = newPos;
+
                 break;
 
             case InputState.PICKUP_UP_UNIT:
@@ -275,6 +329,18 @@ public class InputManager : MonoBehaviour
                 UIManager.ContextMenuIconSelected();
                 break;
 
+            case InputState.CONEXT_MENU_ENEMY_SELECT:
+
+                InputState = InputState.NO_INPUT;
+
+                Unit unit = BSM.UnitFromTransform(SelectedUnit);
+                Enemy enemy = BSM.EnemyFromTransform(EnemyCycle[selectedEnemy]);
+
+                UIManager.BattleForecast(unit.ID, enemy.ID);
+                //pull up battle forecast
+
+                break;
+
             case InputState.PICKUP_UP_UNIT:
 
                 if (SelectedUnit.position == Cursor.position)
@@ -282,7 +348,8 @@ public class InputManager : MonoBehaviour
                     //unit hasnt moved, open menu
 
                     InputState = InputState.NO_INPUT;
-                    UIManager.OpenContextMenu(SelectedUnit);
+
+                    ContextMenuPrep();
                 }
                 else
                 {
@@ -348,6 +415,17 @@ public class InputManager : MonoBehaviour
 
                 break;
 
+            case InputState.CONEXT_MENU_ENEMY_SELECT:
+
+                EnemyBattleHover.gameObject.SetActive(false);
+                UIManager.CloseContextMenu();
+                SelectedUnit = null;
+                pickup = false;
+                BSM.UnitDropped();
+                BSM.CancelGhostMove();
+
+                break;
+
             case InputState.UNIT_OVERVIEW_MENU:
                 
                 if (UIManager.GetCamState() == CameraState.UNIT_OVERVIEW)
@@ -379,6 +457,13 @@ public class InputManager : MonoBehaviour
                 break;
 
             case InputState.BATTLE_FORECAST:
+
+                EnemyBattleHover.gameObject.SetActive(false);
+                UIManager.CloseContextMenu();
+                SelectedUnit = null;
+                pickup = false;
+                BSM.UnitDropped();
+                BSM.CancelGhostMove();
 
                 UIManager.BattleForecastExit(false);
 
@@ -467,15 +552,32 @@ public class InputManager : MonoBehaviour
         }
     }
 
+    void ToggleButton()
+    {
+        switch (InputState)
+        {
+            case InputState.ACCEPTING_INPUT:
+
+                BSM.grid.ToggleSprites();
+
+                break;
+        }
+    }
+
     void UnitPickup(Transform cursorAnchor)
     {
         if (BSM.grid.UnitAtPos(cursorAnchor.position, out SelectedUnit))  //MODIFY THIS LATER TO GET ENEMY INFO TOO
         {
-            InputState = InputState.PICKUP_UP_UNIT;
-            pickup = true;
+            Unit unit = BSM.UnitFromTransform(SelectedUnit);
+
+            if (!unit.ActionUsed)
+            {
+                InputState = InputState.PICKUP_UP_UNIT;
+                pickup = true;
+            }
         }
         else
-            Debug.Log("empty tile");
+            Debug.Log("no yoo nit");
     }
 
     public void CardinalDirections(Direction dir)
@@ -545,25 +647,41 @@ public class InputManager : MonoBehaviour
             return;
     }
 
-    private void FixedUpdate()
-    {/*
-        if (InputState == InputState.CUSOR_MOVING)
+    bool EnemyNearUnit(Transform unitTrans)
+    {
+        bool rtnBool = false;
+        int num = 1 * BSM.indexSizeMultiplier;
+
+        (int, int)[] tilesPositions = new (int, int)[] {
+            ((int)unitTrans.position.x + num, (int)unitTrans.position.z),  //+1,0
+            ((int)unitTrans.position.x - num, (int)unitTrans.position.z),  //-1,0
+            ((int)unitTrans.position.x, (int)unitTrans.position.z + num),  //0,+1
+            ((int)unitTrans.position.x, (int)unitTrans.position.z - num)   //0,-1
+        };
+
+        List<Transform> temp = new List<Transform>();
+
+        for (int i = 0; i < tilesPositions.Length; i++)
         {
-            elapsedTime += Time.deltaTime;
-            float percentageComplete = elapsedTime / desiredDuration;
+            Transform enemy;
+            Vector3 testPos = new Vector3(tilesPositions[i].Item1, -1.4f, tilesPositions[i].Item2);
+            Debug.Log(testPos);
 
-            Cursor.position = Vector3.Lerp(oldCursorPos, newCursorPos, percentageComplete);
-
-            if (Cursor.position == newCursorPos)
+            if (BSM.grid.EnemyAtPos(testPos, out enemy))
             {
-                elapsedTime = 0;
-
-                if (pickup)
-                    InputState = InputState.PICKUP_UP_UNIT;
-                else
-                    InputState = InputState.ACCEPTING_INPUT;
+                temp.Add(enemy);
+                rtnBool = true;
+                Debug.Log("Enemy Found");
             }
-        }*/
+        }
+
+        EnemyCycle = temp;
+        return rtnBool;
+    }
+
+    public void PlayerTurn()
+    {
+        InputState = InputState.ACCEPTING_INPUT;
     }
 
     public void ContextMenuOpened()
@@ -618,6 +736,10 @@ public class InputManager : MonoBehaviour
         InputState = InputState.BATTLE_FORECAST;
     }
 
+    public void EnemyCycleMethod()
+    {
+        InputState = InputState.CONEXT_MENU_ENEMY_SELECT;
+    }
 
     public void ContextMenuStay()
     {

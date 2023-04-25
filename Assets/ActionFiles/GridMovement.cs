@@ -125,6 +125,15 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Toggle"",
+                    ""type"": ""Button"",
+                    ""id"": ""f5612c8a-1db5-4ac8-b800-4b92f2487bc9"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -325,6 +334,17 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                     ""action"": ""CameraZoomDown"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fd1735c5-6c47-438a-87a2-31e4178c469c"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Toggle"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -344,6 +364,7 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         m_CursorMovement_BumperRight = m_CursorMovement.FindAction("BumperRight", throwIfNotFound: true);
         m_CursorMovement_CameraZoomUp = m_CursorMovement.FindAction("CameraZoomUp", throwIfNotFound: true);
         m_CursorMovement_CameraZoomDown = m_CursorMovement.FindAction("CameraZoomDown", throwIfNotFound: true);
+        m_CursorMovement_Toggle = m_CursorMovement.FindAction("Toggle", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -414,6 +435,7 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
     private readonly InputAction m_CursorMovement_BumperRight;
     private readonly InputAction m_CursorMovement_CameraZoomUp;
     private readonly InputAction m_CursorMovement_CameraZoomDown;
+    private readonly InputAction m_CursorMovement_Toggle;
     public struct CursorMovementActions
     {
         private @GridMovement m_Wrapper;
@@ -429,6 +451,7 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         public InputAction @BumperRight => m_Wrapper.m_CursorMovement_BumperRight;
         public InputAction @CameraZoomUp => m_Wrapper.m_CursorMovement_CameraZoomUp;
         public InputAction @CameraZoomDown => m_Wrapper.m_CursorMovement_CameraZoomDown;
+        public InputAction @Toggle => m_Wrapper.m_CursorMovement_Toggle;
         public InputActionMap Get() { return m_Wrapper.m_CursorMovement; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -471,6 +494,9 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 @CameraZoomDown.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnCameraZoomDown;
                 @CameraZoomDown.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnCameraZoomDown;
                 @CameraZoomDown.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnCameraZoomDown;
+                @Toggle.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnToggle;
+                @Toggle.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnToggle;
+                @Toggle.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnToggle;
             }
             m_Wrapper.m_CursorMovementActionsCallbackInterface = instance;
             if (instance != null)
@@ -508,6 +534,9 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 @CameraZoomDown.started += instance.OnCameraZoomDown;
                 @CameraZoomDown.performed += instance.OnCameraZoomDown;
                 @CameraZoomDown.canceled += instance.OnCameraZoomDown;
+                @Toggle.started += instance.OnToggle;
+                @Toggle.performed += instance.OnToggle;
+                @Toggle.canceled += instance.OnToggle;
             }
         }
     }
@@ -525,5 +554,6 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         void OnBumperRight(InputAction.CallbackContext context);
         void OnCameraZoomUp(InputAction.CallbackContext context);
         void OnCameraZoomDown(InputAction.CallbackContext context);
+        void OnToggle(InputAction.CallbackContext context);
     }
 }

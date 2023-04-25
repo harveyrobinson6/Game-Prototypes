@@ -27,9 +27,10 @@ namespace N_Entity
         public EntityStatus EntityStatus { get; protected set; }
         public Stats EntityStats { get; protected set; }
         public List<Weapon> Weapons { get; protected set; }
-        public SpriteRenderer EntitySprite { get; protected set; }
+        public SpriteRenderer[] Sprites { get; protected set; }
         public Transform EntityTransform { get; protected set; }
         public Transform EntityAnchorTransform { get; protected set; }
+        public bool ActionUsed { get; protected set; }
 
         public void NewWeaponSelected(int ID)
         {
@@ -51,6 +52,29 @@ namespace N_Entity
 
             EntityStats.TakeDamage(damage);
         }
+
+        public void GreyOut()
+        {
+            ActionUsed = true;
+
+            foreach (var sr in Sprites)
+            {
+                Color color = new Color(0.5f, 0.5f, 0.5f, 1f);
+                sr.color = color;
+            }
+        }
+
+        public void GreyIn()
+        {
+            ActionUsed = false;
+
+            foreach (var sr in Sprites)
+            {
+                Color color = new Color(1f, 1f, 1f, 1f);
+                sr.color = color;
+            }
+        }
+
     }
 
     public class Stats

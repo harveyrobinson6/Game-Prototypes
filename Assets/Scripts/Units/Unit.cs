@@ -11,12 +11,12 @@ namespace N_Entity
 
         }
 
-        public Unit(int id, Stats stats, SpriteRenderer spriteRenderer, Transform transform, Transform anchor, List<Weapon> weapons)
+        public Unit(int id, Stats stats, Transform transform, Transform anchor, List<Weapon> weapons, SpriteRenderer[] spriteRenderers)
         {
             ID = id;
             SelectedWeapon = 0;
             EntityStats = stats;
-            EntitySprite = spriteRenderer;
+            //EntitySprite = spriteRenderer;
             EntityTransform = transform;
             EntityAnchorTransform = anchor;
 
@@ -25,6 +25,9 @@ namespace N_Entity
             EntityClass = EntityClass.Knight;
 
             Weapons = weapons;
+
+            Sprites = spriteRenderers;
+            ActionUsed = false;
         }
     }
 }

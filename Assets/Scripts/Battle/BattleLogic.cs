@@ -18,11 +18,11 @@ public class BattleLogic : MonoBehaviour
     {
         Battle currentBattle = new Battle(_unit, _enemy, attacker);
 
-        UnitTransform.localPosition = new Vector3(-5, 2, 0);
-        EnemyTransform.localPosition = new Vector3(5, 2, 0);
+        UnitTransform.localPosition = new Vector3(-5, -1.3f, 0);
+        EnemyTransform.localPosition = new Vector3(5, -1.3f, 0);
 
-        UnitSprite.sprite = _unit.EntitySprite.sprite;
-        EnemySprite.sprite = _enemy.EntitySprite.sprite;
+        UnitSprite.sprite = _unit.Sprites[0].sprite;
+        EnemySprite.sprite = _enemy.Sprites[0].sprite;
 
         UnitWeapon.sprite = _unit.Weapons[_unit.SelectedWeapon].WeaponSprite;
         EnemyWeapon.sprite = _enemy.Weapons[_enemy.SelectedWeapon].WeaponSprite;

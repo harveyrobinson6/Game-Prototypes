@@ -33,13 +33,14 @@ namespace N_Grid
         public TileType TileType { get; private set; }
         public List<(int x, int y)> AdjacencyList { get; private set; }
         public SpriteRenderer GhostSpriteRend { get; private set; }
+        public GameObject TileOutline { get; private set; }
 
         public G_Tile()
         {
 
         }
 
-        public G_Tile(int w, int h, int coEff, List<(int, int)> adjList, SpriteRenderer sr, TileType tileType, OccupationStatus occupation)
+        public G_Tile(int w, int h, int coEff, List<(int, int)> adjList, SpriteRenderer sr, TileType tileType, OccupationStatus occupation, GameObject tileOutline)
         {
             TileWIndex = w;
             TileHIndex = h;
@@ -53,6 +54,8 @@ namespace N_Grid
             AdjacencyList = adjList;
 
             GhostSpriteRend = sr;
+
+            TileOutline = tileOutline;
         }
 
         public void SetUnitOccupant(Transform occ)
