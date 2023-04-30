@@ -8,7 +8,7 @@ public class BackgroundScroll : MonoBehaviour
     Vector3 newStart;
     Vector3 bg2Start;
 
-    float cloudSpeed = 0.3f;
+    float cloudSpeed = 20;
 
     [SerializeField] Transform bg1;
     [SerializeField] Transform bg2;
@@ -16,27 +16,55 @@ public class BackgroundScroll : MonoBehaviour
 
     private void Start()
     {
-        newStart = bg1.position;
-        bg2Start = bg2.position;
+        B1Move();
+        B2Move();
+        B3Move();
     }
 
-    private void FixedUpdate()
+    void B1Move()
     {
-        Vector3 temp =  bg1.position;
-        temp.x += cloudSpeed;
-        bg1.position = temp;
-
-        temp = bg2.position;
-        temp.x += cloudSpeed;
-        bg2.position = temp;
-
-        if (bg1.position.x >= Mathf.Abs(bg2Start.x))
+        bg1.DOMoveX(0, cloudSpeed).SetEase(Ease.Linear).OnComplete(() =>
         {
-            bg1.position = bg2Start;
-        }
-        if (bg2.position.x >= Mathf.Abs(bg2Start.x))
+            bg1.DOMoveX(1250, cloudSpeed).SetEase(Ease.Linear).OnComplete(() =>
+            {
+                bg1.DOMoveX(2500, cloudSpeed).SetEase(Ease.Linear).OnComplete(() =>
+                {
+                    bg1.position = new Vector3(-1250, 132, 1200);
+                    B1Move();
+                });
+            });
+        });
+    }
+
+    void B2Move()
+    {
+        bg2.DOMoveX(1250, cloudSpeed).SetEase(Ease.Linear).OnComplete(() =>
         {
-            bg2.position = bg2Start;
-        }
+            bg2.DOMoveX(2500, cloudSpeed).SetEase(Ease.Linear).OnComplete(() =>
+            {
+                bg2.position = new Vector3(-1250, 132, 1200);
+
+                bg2.DOMoveX(0, cloudSpeed).SetEase(Ease.Linear).OnComplete(() =>
+                {
+                    B2Move();
+                });
+            });
+        });
+    }
+
+    void B3Move()
+    {
+        bg3.DOMoveX(2500, cloudSpeed).SetEase(Ease.Linear).OnComplete(() =>
+        {
+            bg3.position = new Vector3(-1250, 132, 1200);
+
+            bg3.DOMoveX(0, cloudSpeed).SetEase(Ease.Linear).OnComplete(() =>
+            {
+                bg3.DOMoveX(1250, cloudSpeed).SetEase(Ease.Linear).OnComplete(() =>
+                {
+                    B3Move();
+                });
+            });
+        });
     }
 }

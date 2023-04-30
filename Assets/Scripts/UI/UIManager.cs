@@ -102,6 +102,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] Transform TurnText2;
     [SerializeField] CanvasGroup EnemyTurnCG;
 
+    [SerializeField] Transform InventoryElement;
+    Transform[] invelements;
+
     private void Awake()
     {
         
@@ -319,7 +322,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void ContextMenuIconSelected()
+    public void ContextMenuIconSelected(Transform unit)
     {
         string type = ElementType[contextMenuSelectedItem];
         Debug.Log(type);
@@ -341,6 +344,23 @@ public class UIManager : MonoBehaviour
 
             case "Inventory":
 
+                contextMenuSelectedItem = 0;
+                
+                //add elemtns to canvas 
+                Transform parent = unit.Find("Canvas").Find("Inventory").Find("Panel");
+                Unit currentUnit = BSM.UnitFromTransform(unit);
+
+                invelements = new Transform[currentUnit.Weapons.Count];
+
+                for (int i = 0; i < currentUnit.Weapons.Count; i++)
+                {
+                    invelements[i] = Instantiate(InventoryElement, parent);
+                    invelements[i].Find("weaponsprite").GetComponent<Image>().sprite = currentUnit.Weapons[i].WeaponSprite;
+                    invelements[i].Find("weaponname").GetComponent<TextMeshProUGUI>().text = currentUnit.Weapons[i].Name;
+                }
+
+                InputManager.ConextMenuInv();
+
                 break;
 
             case "Stay":
@@ -354,6 +374,16 @@ public class UIManager : MonoBehaviour
                 InputManager.ContextMenuStay();
                 
                 break;
+        }
+    }
+
+    public void ContextMenuCloseInv()
+    {
+        for (int i = 0; i < invelements.Length; i++)
+        {
+            GameObject go = invelements[i].gameObject;
+            invelements[i] = null;
+            Destroy(go);
         }
     }
 
@@ -501,6 +531,7 @@ public class UIManager : MonoBehaviour
         //close thing
         BSM.units[currentUnit.ID].NewWeaponSelected(weaponCycle);
         BattleForecastExit(true);
+        //CloseContextMenu();
     }
 
     void BattleForecastOpened()

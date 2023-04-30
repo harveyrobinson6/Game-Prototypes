@@ -14,18 +14,60 @@ public class BattleLogic : MonoBehaviour
     [SerializeField] SpriteRenderer UnitWeapon;
     [SerializeField] SpriteRenderer EnemyWeapon;
 
+    [SerializeField] SpriteRenderer UnitWeaponSprite;
+    [SerializeField] SpriteRenderer UnitTorsoSprite;
+    [SerializeField] SpriteRenderer UnitLegsSprite;
+    [SerializeField] SpriteRenderer UnitBodySprite;
+    [SerializeField] SpriteRenderer UnitHeadSprite;
+    [SerializeField] SpriteRenderer UnitFeetSprite;
+    [SerializeField] SpriteRenderer UnitShoulderSprite;
+
+    [SerializeField] SpriteRenderer EnemyWeaponSprite;
+    [SerializeField] SpriteRenderer EnemyTorsoSprite;
+    [SerializeField] SpriteRenderer EnemyLegsSprite;
+    [SerializeField] SpriteRenderer EnemyBodySprite;
+    [SerializeField] SpriteRenderer EnemyHeadSprite;
+    [SerializeField] SpriteRenderer EnemyFeetSprite;
+    [SerializeField] SpriteRenderer EnemyShoulderSprite;
+
     public void Init(Unit _unit, Enemy _enemy, InitalAttacker attacker)
     {
         Battle currentBattle = new Battle(_unit, _enemy, attacker);
 
-        UnitTransform.localPosition = new Vector3(-5, -1.3f, 0);
-        EnemyTransform.localPosition = new Vector3(5, -1.3f, 0);
+        UnitTransform.localPosition = new Vector3(-5, 1, -85);
+        EnemyTransform.localPosition = new Vector3(5, 1, -85);
 
-        UnitSprite.sprite = _unit.Sprites[0].sprite;
-        EnemySprite.sprite = _enemy.Sprites[0].sprite;
+        UnitWeaponSprite.sprite = null;
+        UnitTorsoSprite.sprite = null;
+        UnitLegsSprite.sprite = null;
+        UnitBodySprite.sprite = null;
+        UnitHeadSprite.sprite = null;
+        UnitFeetSprite.sprite = null;
+        UnitShoulderSprite.sprite = null;
 
-        UnitWeapon.sprite = _unit.Weapons[_unit.SelectedWeapon].WeaponSprite;
-        EnemyWeapon.sprite = _enemy.Weapons[_enemy.SelectedWeapon].WeaponSprite;
+        EnemyWeaponSprite.sprite = null;
+        EnemyTorsoSprite.sprite = null;
+        EnemyLegsSprite.sprite = null;
+        EnemyBodySprite.sprite = null;
+        EnemyHeadSprite.sprite = null;
+        EnemyFeetSprite.sprite = null;
+        EnemyShoulderSprite.sprite = null;
+
+        UnitWeaponSprite.sprite = _unit.Weapons[_unit.SelectedWeapon].WeaponSprite;
+        UnitTorsoSprite.sprite = _unit.Sprites[3].sprite;
+        UnitLegsSprite.sprite = _unit.Sprites[4].sprite;
+        UnitBodySprite.sprite = _unit.Sprites[2].sprite;
+        UnitHeadSprite.sprite = _unit.Sprites[0].sprite;
+        UnitFeetSprite.sprite = _unit.Sprites[5].sprite;
+        UnitShoulderSprite.sprite = _unit.Sprites[1].sprite;
+
+        EnemyWeaponSprite.sprite = _enemy.Weapons[_enemy.SelectedWeapon].WeaponSprite;
+        EnemyTorsoSprite.sprite = _enemy.Sprites[3].sprite;
+        EnemyLegsSprite.sprite = _enemy.Sprites[4].sprite;
+        EnemyBodySprite.sprite = _enemy.Sprites[2].sprite;
+        EnemyHeadSprite.sprite = _enemy.Sprites[0].sprite;
+        EnemyFeetSprite.sprite = _enemy.Sprites[5].sprite;
+        EnemyShoulderSprite.sprite = _enemy.Sprites[1].sprite;
 
         var sequence = DOTween.Sequence();
         sequence.PrependInterval(2f);

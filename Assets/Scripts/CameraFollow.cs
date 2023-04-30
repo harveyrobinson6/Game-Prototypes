@@ -10,6 +10,7 @@ public enum CameraState
     SELECTING_UNIT_OVERVIEW,
     DESELECTING_UNIT_OVERVIEW,
     UNIT_OVERVIEW,
+    ENEMY_LOOKAT,
     //BATTLE_FORECAST,
     BATTLE
 }
@@ -22,6 +23,9 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] CinemachineFreeLook MainCamera;
     [SerializeField] CinemachineVirtualCamera UnitOverviewCamera;
     [SerializeField] CinemachineVirtualCamera BattleCamera;
+    [SerializeField] CinemachineVirtualCamera EnemyCamera;
+
+    [SerializeField] Transform enemyChildObj;
     //[SerializeField] CinemachineVirtualCamera BattleForecastCamera;
 
     [SerializeField] Vector3 unitOverviewOffset;
@@ -44,6 +48,7 @@ public class CameraFollow : MonoBehaviour
         MainCamera.Priority = 0;
         UnitOverviewCamera.Priority = 1;
         BattleCamera.Priority = 0;
+        EnemyCamera.Priority = 0;
         //BattleForecastCamera.Priority = 0;
     }
 
@@ -53,6 +58,7 @@ public class CameraFollow : MonoBehaviour
         MainCamera.Priority = 0;
         UnitOverviewCamera.Priority = 0;
         BattleCamera.Priority = 1;
+        EnemyCamera.Priority = 0;
         //BattleForecastCamera.Priority = 0;
     }
     /*
@@ -71,7 +77,20 @@ public class CameraFollow : MonoBehaviour
         MainCamera.Priority = 1;
         UnitOverviewCamera.Priority = 0;
         BattleCamera.Priority = 0;
+        EnemyCamera.Priority = 0;
         //BattleForecastCamera.Priority = 0;
+    }
+
+    public void MoveToEnemy(Transform enemy)
+    {
+        enemyChildObj.SetParent(enemy);
+        enemyChildObj.localPosition = new Vector3(0, 0, 0);
+
+        CameraState = CameraState.ENEMY_LOOKAT;
+        MainCamera.Priority = 0;
+        UnitOverviewCamera.Priority = 0;
+        BattleCamera.Priority = 0;
+        EnemyCamera.Priority = 1;
     }
 
     public void NewCameraVal(float val)

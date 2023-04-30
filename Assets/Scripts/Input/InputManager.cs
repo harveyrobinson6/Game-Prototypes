@@ -13,6 +13,7 @@ enum InputState
     ONLY_MOVEMENT,
     UNIT_CONTEXT_MENU,
     CONEXT_MENU_ENEMY_SELECT,
+    CONEXT_MENU_INV,
     UNIT_OVERVIEW_MENU,
     PICKUP_UP_UNIT,
     UNIT_MOVING,
@@ -326,7 +327,7 @@ public class InputManager : MonoBehaviour
 
             case InputState.UNIT_CONTEXT_MENU:
                 InputState = InputState.NO_INPUT;
-                UIManager.ContextMenuIconSelected();
+                UIManager.ContextMenuIconSelected(SelectedUnit);
                 break;
 
             case InputState.CONEXT_MENU_ENEMY_SELECT:
@@ -423,6 +424,13 @@ public class InputManager : MonoBehaviour
                 pickup = false;
                 BSM.UnitDropped();
                 BSM.CancelGhostMove();
+
+                break;
+
+            case InputState.CONEXT_MENU_INV:
+
+                UIManager.ContextMenuCloseInv();
+                InputState = InputState.UNIT_CONTEXT_MENU;
 
                 break;
 
@@ -574,6 +582,7 @@ public class InputManager : MonoBehaviour
             {
                 InputState = InputState.PICKUP_UP_UNIT;
                 pickup = true;
+                BSM.UnitSelected(SelectedUnit);
             }
         }
         else
@@ -617,13 +626,13 @@ public class InputManager : MonoBehaviour
             if (pickup)
             {
                 InputState = temp;
-                UnitCanMove = BSM.CalculatePath(cursorAnchor, SelectedUnit);
+                UnitCanMove = BSM.CalculatePath(cursorAnchor.position, SelectedUnit, true);
             }
             else
                 InputState = InputState.ACCEPTING_INPUT;
 
 
-            Debug.Log(InputState);
+           // Debug.Log(InputState);
 
             Cursor.DOMove(potentialPos,0.25f).OnComplete(() =>
             {
@@ -639,6 +648,7 @@ public class InputManager : MonoBehaviour
                 UIManager.CursorFeedback(tile);
             });
 
+            Debug.Log(tile.TileWIndex + " " + tile.TileHIndex);
             
             //Cursor.position = potentialPos;
             
@@ -709,6 +719,11 @@ public class InputManager : MonoBehaviour
         InputState = InputState.ACCEPTING_INPUT;
     }
 
+    public void ConextMenuInv()
+    {
+        InputState = InputState.CONEXT_MENU_INV;
+    }
+
     public void BattleForecastClosed()
     {
         SelectedUnit = null;
@@ -743,9 +758,9 @@ public class InputManager : MonoBehaviour
 
     public void ContextMenuStay()
     {
-        BSM.UnitCommitMove();
+        InputState = InputState.ACCEPTING_INPUT;
+        BSM.UnitCommitMove(false);
         BSM.RemoveGhostSprites();
         pickup = false;
-        InputState = InputState.ACCEPTING_INPUT;
     }
 }
