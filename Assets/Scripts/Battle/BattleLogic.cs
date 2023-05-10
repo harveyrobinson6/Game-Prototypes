@@ -7,6 +7,7 @@ using DG.Tweening;
 public class BattleLogic : MonoBehaviour
 {
     [SerializeField] BattleSceneManager BSM;
+    [SerializeField] UIManager UIManager;
     [SerializeField] Transform UnitTransform;
     [SerializeField] Transform EnemyTransform;
     [SerializeField] SpriteRenderer UnitSprite;
@@ -29,6 +30,8 @@ public class BattleLogic : MonoBehaviour
     [SerializeField] SpriteRenderer EnemyHeadSprite;
     [SerializeField] SpriteRenderer EnemyFeetSprite;
     [SerializeField] SpriteRenderer EnemyShoulderSprite;
+
+    [SerializeField] SoundManager SM;
 
     public void Init(Unit _unit, Enemy _enemy, InitalAttacker attacker)
     {
@@ -82,29 +85,110 @@ public class BattleLogic : MonoBehaviour
                         Debug.Log("wipwip");
                         //unit attacks enemy
                         sequence.Append(UnitTransform.DOLocalMoveX(5, 1f));
-                        sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f));
+
+                        if (!currentBattle.attackerHit)
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyMiss()));
+                        }   
+                        else if (currentBattle.attackerCrit)
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyCrt(currentBattle.attackerDamage)));
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.attackerDamage);
+                        }
+                        else
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyTakeDamage(currentBattle.attackerDamage)));
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.attackerDamage);
+                        }
+
                         //enemy sinks through floor
-                        sequence.Append(EnemyTransform.DOLocalMoveY(0, 0.5f).SetDelay(2f));
-                        //DO DAMAGE
+                        sequence.Append(EnemyTransform.DOLocalMoveY(-4.5f, 0.5f).SetDelay(2f));
                         break;
                     case Outcome.UNIT_FIRST_LOOSE:
                         //unit attacks enemy
                         sequence.Append(UnitTransform.DOLocalMoveX(5, 1f));
-                        sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f));
+
+                        if (!currentBattle.attackerHit)
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyMiss()));
+                        }
+                        else if (currentBattle.attackerCrit)
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyCrt(currentBattle.attackerDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.defenderDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.attackerDamage);
+                        }
+                        else
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyTakeDamage(currentBattle.attackerDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.defenderDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.attackerDamage);
+                        }
+
                         //enemy counterattacks
                         sequence.Append(EnemyTransform.DOLocalMoveX(-5, 1f).SetDelay(2f));
-                        sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f));
+
+                        if (!currentBattle.defenderHit)
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitMiss()));
+                        }
+                        else if (currentBattle.defenderCrit)
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitCrt(currentBattle.defenderDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.defenderDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.attackerDamage);
+                        }
+                        else
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitTakeDamage(currentBattle.defenderDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.defenderDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.attackerDamage);
+                        }
+
                         //unit sinks through floor
-                        sequence.Append(UnitTransform.DOLocalMoveY(0, 0.5f).SetDelay(2f));
+                        sequence.Append(UnitTransform.DOLocalMoveY(-4.5f, 0.5f).SetDelay(2f));
                         break;
                     case Outcome.STALEMATE:
                         //unit attacks enemy
                         sequence.Append(UnitTransform.DOLocalMoveX(5, 1f));
-                        sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f));
+
+                        if (!currentBattle.attackerHit)
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyMiss()));
+                        }
+                        else if (currentBattle.attackerCrit)
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyCrt(currentBattle.attackerDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.defenderDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.attackerDamage);
+                        }
+                        else
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyTakeDamage(currentBattle.attackerDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.defenderDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.attackerDamage);
+                        }
+
                         //enemy counterattacks
                         sequence.Append(EnemyTransform.DOLocalMoveX(-5, 1f).SetDelay(2f));
-                        sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f));
-                        BSM.units[_unit.ID].TakeDamage(currentBattle.defenderDamage);
+
+                        if (!currentBattle.defenderHit)
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitMiss()));
+                        }
+                        else if (currentBattle.defenderCrit)
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitCrt(currentBattle.defenderDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.defenderDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.attackerDamage);
+                        }
+                        else
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitTakeDamage(currentBattle.defenderDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.defenderDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.attackerDamage);
+                        }
+
                         break;
                 }
 
@@ -116,27 +200,110 @@ public class BattleLogic : MonoBehaviour
                     case Outcome.ENEMY_FIRST_WIN:
                         //enemy attacks unit
                         sequence.Append(EnemyTransform.DOLocalMoveX(-5, 1f));
-                        sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f));
+
+                        if (!currentBattle.attackerHit)
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitMiss()));
+                        }
+                        else if (currentBattle.attackerCrit)
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitCrt(currentBattle.attackerDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.attackerDamage);
+                        }
+                        else
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitTakeDamage(currentBattle.attackerDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.attackerDamage);
+                        }
+
                         //unit sinks through floor
-                        sequence.Append(UnitTransform.DOLocalMoveY(0, 0.5f).SetDelay(2f));
+                        sequence.Append(UnitTransform.DOLocalMoveY(-4.5f, 0.5f).SetDelay(2f));
                         break;
                     case Outcome.ENEMY_FIRST_LOOSE:
                         //enemy attacks unit
                         sequence.Append(EnemyTransform.DOLocalMoveX(-5, 1f));
-                        sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).SetDelay(1));
+
+                        if (!currentBattle.attackerHit)
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitMiss()));
+                        }
+                        else if (currentBattle.attackerCrit)
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitCrt(currentBattle.attackerDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.attackerDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.defenderDamage);
+                        }
+                        else
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitTakeDamage(currentBattle.attackerDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.attackerDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.defenderDamage);
+                        }
+
                         //unit counterattacks
                         sequence.Append(UnitTransform.DOLocalMoveX(5, 1f).SetDelay(2f));
-                        sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f));
+
+                        if (!currentBattle.defenderHit)
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyMiss()));
+                        }
+                        else if (currentBattle.defenderCrit)
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyCrt(currentBattle.defenderDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.attackerDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.defenderDamage);
+                        }
+                        else
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyTakeDamage(currentBattle.defenderDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.attackerDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.defenderDamage);
+                        }
+
                         //enemy sinks through floor
-                        sequence.Append(EnemyTransform.DOLocalMoveY(0, 0.5f).SetDelay(2f));
+                        sequence.Append(EnemyTransform.DOLocalMoveY(-4.5f, 0.5f).SetDelay(2f));
                         break;
                     case Outcome.STALEMATE:
                         //enemy attacks unit
                         sequence.Append(EnemyTransform.DOLocalMoveX(-5, 1f));
-                        sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f));
+
+                        if (!currentBattle.attackerHit)
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitMiss()));
+                        }
+                        else if (currentBattle.attackerCrit)
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitCrt(currentBattle.attackerDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.attackerDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.defenderDamage);
+                        }
+                        else
+                        {
+                            sequence.Append(EnemyTransform.DOLocalMoveX(5, 0.25f).OnComplete(() => UIManager.UnitTakeDamage(currentBattle.attackerDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.attackerDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.defenderDamage);
+                        }
+
                         //unit counterattacks
                         sequence.Append(UnitTransform.DOLocalMoveX(5, 1f).SetDelay(2f));
-                        sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f));
+
+                        if (!currentBattle.defenderHit)
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyMiss()));
+                        }
+                        else if (currentBattle.defenderCrit)
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyCrt(currentBattle.defenderDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.attackerDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.defenderDamage);
+                        }
+                        else
+                        {
+                            sequence.Append(UnitTransform.DOLocalMoveX(-5, 0.25f).OnComplete(() => UIManager.EnemyTakeDamage(currentBattle.defenderDamage)));
+                            BSM.units[_unit.ID].TakeDamage(currentBattle.attackerDamage);
+                            BSM.enemies[_enemy.ID].TakeDamage(currentBattle.defenderDamage);
+                        }
+
                         break;
                 }
 
@@ -144,7 +311,8 @@ public class BattleLogic : MonoBehaviour
         }
 
         //don't need to start sequence, it starts automatically at end of scope
-        sequence.AppendCallback(() => { BSM.BattleOver(_unit.ID, _enemy.ID, currentBattle.Outcome); });
+        sequence.AppendInterval(2f);
+        sequence.AppendCallback(() => { BSM.BattleOver(_unit.ID, _enemy.ID, currentBattle.Outcome, attacker); });
         //set health
     }
 
@@ -225,6 +393,8 @@ public class BattleLogic : MonoBehaviour
 
                     {
                         int damageVal = ((attacker.EntityStats.Attack + attackerWeapon.Power) / 2) - defender.EntityStats.Defence;
+                        if (damageVal < 0)
+                            damageVal = 0;
                         return damageVal;
                     }
 
@@ -232,6 +402,8 @@ public class BattleLogic : MonoBehaviour
 
                     {
                         int damageVal = ((attacker.EntityStats.Aether + attackerWeapon.Power) / 2) - defender.EntityStats.Faith;
+                        if (damageVal < 0)
+                            damageVal = 0;
                         return damageVal;
                     }
             }

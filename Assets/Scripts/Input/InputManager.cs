@@ -20,6 +20,7 @@ enum InputState
     CUSOR_MOVING,
     ATTACK_PROMPT,
     BATTLE_FORECAST,
+    TUTORIAL,
     NO_INPUT
 }
 
@@ -57,7 +58,8 @@ public class InputManager : MonoBehaviour
     [SerializeField] BattleSceneManager BSM;
     [SerializeField] UIManager UIManager;
     Transform SelectedUnit = null;
-    [SerializeField] Transform Cursor;
+    public Transform Cursor;
+    [SerializeField] SoundManager SM;
 
     [SerializeField] CameraFollow CameraFollow;
     float camVal = 0.5f;
@@ -91,6 +93,11 @@ public class InputManager : MonoBehaviour
     public int selectedEnemy { get; private set; }
     [SerializeField] public Transform EnemyBattleHover;
 
+    Transform cursorNormal;
+    Transform cursorSelected;
+
+    int unitcycle = 0;
+
     private void Awake()
     {
         GridMovement = new GridMovement();
@@ -110,6 +117,11 @@ public class InputManager : MonoBehaviour
         GridMovement.CursorMovement.CameraZoomDown.performed += ctx => RightStick(ctx, StickDirection.DOWN);
         GridMovement.CursorMovement.CameraZoomDown.canceled += ctx => RightStick(ctx, StickDirection.DOWN);
         GridMovement.CursorMovement.Toggle.performed += ctx => ToggleButton();
+        GridMovement.CursorMovement.Tutorial.performed += ctx => TutorialKey();
+
+        cursorNormal = Cursor.Find("CursorSprite");
+        cursorSelected = Cursor.Find("CursorSpriteSelected");
+        cursorSelected.gameObject.SetActive(false);
     }
 
     private void Start()
@@ -164,9 +176,11 @@ public class InputManager : MonoBehaviour
 
     void ContextMenuPrep()
     {
+        selectedEnemy = 0;
+
         bool[] elementEnabled = new bool[] { false, true, true };
 
-        elementEnabled[0] = EnemyNearUnit(SelectedUnit);
+        //elementEnabled[0] = EnemyNearUnit(SelectedUnit);
 
         UIManager.OpenContextMenu(SelectedUnit, elementEnabled);
     }
@@ -212,6 +226,8 @@ public class InputManager : MonoBehaviour
                 break;
 
             case InputState.UNIT_CONTEXT_MENU:
+
+                SM.PlayUISound();
                 UIManager.ContextMenuInput(dir);
                 break;
 
@@ -245,7 +261,7 @@ public class InputManager : MonoBehaviour
 
                 EnemyBattleHover.gameObject.SetActive(true);
                 Vector3 newPos = EnemyCycle[selectedEnemy].position;
-                Debug.Log(newPos);
+                //Debug.Log(newPos);
                 newPos.y = 3.5f;
                 EnemyBattleHover.position = newPos;
 
@@ -284,7 +300,7 @@ public class InputManager : MonoBehaviour
                 break;
 
             case InputState.ATTACK_PROMPT:
-                Debug.Log("attackie");
+                //Debug.Log("attackie");
                 InputState = InputState.PICKUP_UP_UNIT;
                 switch (dir)
                 {
@@ -337,6 +353,8 @@ public class InputManager : MonoBehaviour
                 Unit unit = BSM.UnitFromTransform(SelectedUnit);
                 Enemy enemy = BSM.EnemyFromTransform(EnemyCycle[selectedEnemy]);
 
+                SM.PlayUISound();
+
                 UIManager.BattleForecast(unit.ID, enemy.ID);
                 //pull up battle forecast
 
@@ -349,7 +367,7 @@ public class InputManager : MonoBehaviour
                     //unit hasnt moved, open menu
 
                     InputState = InputState.NO_INPUT;
-
+                    SM.PlayUISound();
                     ContextMenuPrep();
                 }
                 else
@@ -359,6 +377,7 @@ public class InputManager : MonoBehaviour
                         //unit has moved
                         //move unit first, then open menu
                         InputState = InputState.NO_INPUT;
+                        SM.PlayUISound();
                         BSM.GhostMoveUnit(SelectedUnit);
                     }
                 }
@@ -377,21 +396,27 @@ public class InputManager : MonoBehaviour
 
                 InputState = InputState.NO_INPUT;
                 UIManager.BattleForecast(currentBattleUnitID, currentBattleEnemyID);
-                
-                Debug.Log("grrr big nasty attack");
+                SM.PlayUISound();
+
+                //Debug.Log("grrr big nasty attack");
 
                 break;
 
             case InputState.BATTLE_FORECAST:
 
                 InputState = InputState.NO_INPUT;
+                EnemyBattleHover.gameObject.SetActive(false);
+                UIManager.CloseContextMenu();
                 UIManager.AcceptBattle();
+                SM.PlayUISound();
 
                 break;
 
             case InputState.NO_INPUT:
                 break;
         }
+
+        //Debug.Log(BSM.GameState);
     }
 
     void Back()
@@ -425,6 +450,9 @@ public class InputManager : MonoBehaviour
                 BSM.UnitDropped();
                 BSM.CancelGhostMove();
 
+                cursorNormal.gameObject.SetActive(true);
+                cursorSelected.gameObject.SetActive(false);
+
                 break;
 
             case InputState.CONEXT_MENU_INV:
@@ -447,6 +475,10 @@ public class InputManager : MonoBehaviour
                 SelectedUnit = null;
                 pickup = false;
                 BSM.UnitDropped();
+
+                cursorNormal.gameObject.SetActive(true);
+                cursorSelected.gameObject.SetActive(false);
+
                 InputState = InputState.ACCEPTING_INPUT;
                 break;
 
@@ -460,7 +492,17 @@ public class InputManager : MonoBehaviour
 
             case InputState.ATTACK_PROMPT:
 
+                EnemyBattleHover.gameObject.SetActive(false);
+                UIManager.CloseContextMenu();
+                SelectedUnit = null;
+                pickup = false;
+                BSM.UnitDropped();
+                BSM.CancelGhostMove();
+
                 BattleForecastClosed();
+
+                cursorNormal.gameObject.SetActive(true);
+                cursorSelected.gameObject.SetActive(false);
 
                 break;
 
@@ -474,6 +516,16 @@ public class InputManager : MonoBehaviour
                 BSM.CancelGhostMove();
 
                 UIManager.BattleForecastExit(false);
+
+                cursorNormal.gameObject.SetActive(true);
+                cursorSelected.gameObject.SetActive(false);
+
+                break;
+
+            case InputState.TUTORIAL:
+
+                InputState = InputState.NO_INPUT;
+                UIManager.CloseTutorial();
 
                 break;
 
@@ -508,12 +560,83 @@ public class InputManager : MonoBehaviour
             case InputState.ACCEPTING_INPUT:
                 //LIKE FIRE EMBLEM
                 //CYCLE THROUGH UNITS
+                InputState = InputState.NO_INPUT;
+
+                unitcycle = 0;
+
+                switch (dir)
+                {
+                    case BumperDirection.LEFT:
+
+                        Transform unitTrans;
+                        if (BSM.grid.UnitAtPos(Cursor.position, out unitTrans))
+                        {
+                            Unit unit = BSM.UnitFromTransform(unitTrans);
+
+                            if (unit.ID == 0)
+                                unitcycle = BSM.units.Length - 1;
+                            else
+                                unitcycle = unit.ID - 1;
+                        }
 
 
+                        foreach (var unit in BSM.units)
+                        {
+                            if (unit.ID == unitcycle && unit.EntityStatus == EntityStatus.DEAD)
+                            {
+                                unitcycle--;
+
+                                if (unitcycle == 0)
+                                {
+                                    unitcycle = BSM.units.Length - 1;
+                                    return;
+                                }
+                            }
+                            else
+                                break;
+                        }
+
+                        break;
+                    case BumperDirection.RIGHT:
+
+                        Transform unitTrans2;
+                        if (BSM.grid.UnitAtPos(Cursor.position, out unitTrans2))
+                        {
+                            Unit unit = BSM.UnitFromTransform(unitTrans2);
+
+                            if (unit.ID == BSM.units.Length - 1)
+                                unitcycle = 0;
+                            else
+                                unitcycle = unit.ID + 1;
+                        }
 
 
+                        foreach (var unit in BSM.units)
+                        {
+                            if (unit.ID == unitcycle && unit.EntityStatus == EntityStatus.DEAD)
+                            {
+                                unitcycle++;
 
+                                if (unitcycle == BSM.units.Length - 1)
+                                {
+                                    unitcycle = 0;
+                                    return;
+                                }
+                            }
+                            else
+                                break;
+                        }
 
+                        break;
+                }
+
+                //Cursor.transform.position = BSM.units[unitcycle].EntityAnchorTransform.position;
+                cursorAnchor.DOMove(BSM.units[unitcycle].EntityAnchorTransform.position, 0.25f);
+                Cursor.DOMove(BSM.units[unitcycle].EntityAnchorTransform.position, 0.25f).OnComplete(() =>
+                {
+                    InputState = InputState.ACCEPTING_INPUT;
+                    cursorAnchor.position = Cursor.position;
+                });
 
 
                 //YE
@@ -525,6 +648,13 @@ public class InputManager : MonoBehaviour
 
                 InputState = InputState.NO_INPUT;
                 UIManager.BattleFirecastWeaponScroll(dir, currentBattleUnitID);
+                SM.PlayUISound();
+
+                break;
+
+            case InputState.TUTORIAL:
+
+                UIManager.TutorialCycle(dir);
 
                 break;
 
@@ -560,6 +690,16 @@ public class InputManager : MonoBehaviour
         }
     }
 
+    void TutorialKey()
+    {
+        if (InputState == InputState.ACCEPTING_INPUT)
+        {
+            InputState = InputState.NO_INPUT;
+
+            UIManager.OpenTutorial();
+        }
+    }
+
     void ToggleButton()
     {
         switch (InputState)
@@ -578,15 +718,23 @@ public class InputManager : MonoBehaviour
         {
             Unit unit = BSM.UnitFromTransform(SelectedUnit);
 
+            if (SelectedUnit == null)
+                Debug.Log("is null");
+
             if (!unit.ActionUsed)
             {
                 InputState = InputState.PICKUP_UP_UNIT;
                 pickup = true;
+
+                cursorNormal.gameObject.SetActive(false);
+                cursorSelected.gameObject.SetActive(true);
+                SM.PlayUISound();
+
                 BSM.UnitSelected(SelectedUnit);
             }
         }
         else
-            Debug.Log("no yoo nit");
+            Debug.Log("no unit");
     }
 
     public void CardinalDirections(Direction dir)
@@ -613,7 +761,7 @@ public class InputManager : MonoBehaviour
             //BSM.CalculatePath(cursorAnchor, SelectedUnit);
 
         InputState temp = InputState;
-        Debug.Log(temp);
+        //Debug.Log(temp);
         Vector3 potentialPos = Cursor.position + dir;
         G_Tile tile = new G_Tile();
 
@@ -632,8 +780,9 @@ public class InputManager : MonoBehaviour
                 InputState = InputState.ACCEPTING_INPUT;
 
 
-           // Debug.Log(InputState);
+            // Debug.Log(InputState);
 
+            SM.PlayTickSound();
             Cursor.DOMove(potentialPos,0.25f).OnComplete(() =>
             {
                 /*
@@ -648,7 +797,7 @@ public class InputManager : MonoBehaviour
                 UIManager.CursorFeedback(tile);
             });
 
-            Debug.Log(tile.TileWIndex + " " + tile.TileHIndex);
+            //Debug.Log(tile.TileWIndex + " " + tile.TileHIndex);
             
             //Cursor.position = potentialPos;
             
@@ -675,13 +824,12 @@ public class InputManager : MonoBehaviour
         {
             Transform enemy;
             Vector3 testPos = new Vector3(tilesPositions[i].Item1, -1.4f, tilesPositions[i].Item2);
-            Debug.Log(testPos);
+            //Debug.Log(testPos);
 
             if (BSM.grid.EnemyAtPos(testPos, out enemy))
             {
                 temp.Add(enemy);
                 rtnBool = true;
-                Debug.Log("Enemy Found");
             }
         }
 
@@ -691,6 +839,8 @@ public class InputManager : MonoBehaviour
 
     public void PlayerTurn()
     {
+        SelectedUnit = null;
+        pickup = false;
         InputState = InputState.ACCEPTING_INPUT;
     }
 
@@ -701,6 +851,9 @@ public class InputManager : MonoBehaviour
 
     public void ContextMenuClosed()
     {
+        cursorNormal.gameObject.SetActive(true);
+        cursorSelected.gameObject.SetActive(false);
+
         InputState = InputState.ACCEPTING_INPUT;
     }
 
@@ -756,11 +909,24 @@ public class InputManager : MonoBehaviour
         InputState = InputState.CONEXT_MENU_ENEMY_SELECT;
     }
 
+    public void TutorialOpened()
+    {
+        InputState = InputState.TUTORIAL;
+    }
+
+    public void TutorialClosed()
+    {
+        InputState = InputState.ACCEPTING_INPUT;
+    }
+
     public void ContextMenuStay()
     {
         InputState = InputState.ACCEPTING_INPUT;
         BSM.UnitCommitMove(false);
         BSM.RemoveGhostSprites();
         pickup = false;
+
+        cursorNormal.gameObject.SetActive(true);
+        cursorSelected.gameObject.SetActive(false);
     }
 }

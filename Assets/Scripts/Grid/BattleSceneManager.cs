@@ -43,6 +43,7 @@ public class BattleSceneManager : MonoBehaviour
     [SerializeField] Transform BattleObject;
     [SerializeField] CameraFollow CameraFollow;
     [SerializeField] UIManager UIManager;
+    [SerializeField] SoundManager SM;
 
     public GameState GameState { get; private set; }
 
@@ -63,8 +64,6 @@ public class BattleSceneManager : MonoBehaviour
     [SerializeField] Sprite[] WeaponSprites;
 
     List<ReturnNode> prevPath;
-
-    int playerMaxMove = 3;
 
     [SerializeField] Sprite[] ghostSprites;
 
@@ -97,16 +96,18 @@ public class BattleSceneManager : MonoBehaviour
     [SerializeField] Sprite[] KnightSpritesRight;
 
     int currentEnemyMove = 0;
+    int enemyMaxMove = 6;
 
     System.Random rnd;
+    List<ReturnNode>.Enumerator em;
 
     void Awake()
     {
         indexSizeMultiplier = 5;
         Sprites = new Sprite[2][];
 
-        Sprites[0] = MageSprites;
-        Sprites[1] = KnightSprites;
+        Sprites[1] = MageSprites;
+        Sprites[0] = KnightSprites;
 
         Transform[,] TilePrefabs = new Transform[w, h];
 
@@ -138,9 +139,10 @@ public class BattleSceneManager : MonoBehaviour
 
         //make gameObjects
 
-        units = new Unit[2];
-        (int, int)[] unitIndexes = {(5,5), (2,8), (8,8), (0,0), (8,2), (8,5)};
-        int[] unitClasses = new int[] { 1, 1, 0, 0, 1, 0 };
+        units = new Unit[6];
+        (int, int)[] unitIndexes = {(0,1), (1,0), (1,2), (7, 1), (22, 0), (24, 0) };
+        int[] unitClasses = new int[] { 0, 0, 1, 1, 0, 1 };
+        //Stats[] classStats = new Stats[] { new Stats(30, 19, 17, 3, 11, 15, 4), new Stats(22, 7, 11, 25, 27, 11, 7) };
         //Vector3[] positions = {new Vector3(0,0,0), new Vector3(25, 0, 25), new Vector3(10, 0, 35)};
 
         for (int i = 0; i < units.Length; i++)
@@ -148,12 +150,24 @@ public class BattleSceneManager : MonoBehaviour
             Vector3 pos = new Vector3(unitIndexes[i].Item1 * indexSizeMultiplier, -1.4f, unitIndexes[i].Item2 * indexSizeMultiplier);
             Transform entityObject = (Instantiate(EntityPrefab, pos, Quaternion.identity));
             Transform unitAnchor = Instantiate(EntityAnchorPrefab, pos, Quaternion.identity);
-            Stats stats = new Stats(20, 13, 8, 11, 3, 7, 2);
+            //Stats stats = new Stats(20, 13, 8, 11, 3, 7, 2);
             List<Weapon> weapons = new List<Weapon>();
-            weapons.Add(new Weapon(4, 120, 5, "Sword", AttackType.MELEE, WeaponSprites[0]));
-            weapons.Add(new Weapon(4, 120, 0, "Fire Staff", AttackType.MAGIC, WeaponSprites[1]));
+            
+            if (unitClasses[i] == 0)
+            {
+                weapons.Add(new Weapon(29, 100, 15, "Iron Sword", AttackType.MELEE, WeaponSprites[0]));
+                weapons.Add(new Weapon(40, 40, 60, "Unwieldy Axe", AttackType.MELEE, WeaponSprites[2]));
+            }
+            else if (unitClasses[i] == 1)
+            {
+                weapons.Add(new Weapon(31, 100, 30, "Fire Staff", AttackType.MAGIC, WeaponSprites[3]));
+                weapons.Add(new Weapon(41, 60, 15, "Thunder Staff", AttackType.MAGIC, WeaponSprites[4]));
+            }
+
+            //weapons.Add(new Weapon(1, 5, 0, "MISS_TEST", AttackType.MELEE, WeaponSprites[1]));
 
             EntityClass entityClass = (EntityClass)unitClasses[i];
+            Debug.Log(entityClass);
 
             var obj = entityObject.Find("Parent");
 
@@ -171,13 +185,15 @@ public class BattleSceneManager : MonoBehaviour
             spriteRenderers[5] = obj.Find("FeetSprite").GetComponent<SpriteRenderer>();
             spriteRenderers[5].sprite = Sprites[unitClasses[i]][5];
 
-            units[i] = new Unit(i, stats, entityObject, unitAnchor, weapons, spriteRenderers);
+            units[i] = new Unit(i, new Stats(unitClasses[i]), entityObject, unitAnchor, weapons, spriteRenderers, entityClass);
             grid.Tiles[unitIndexes[i].Item1, unitIndexes[i].Item2].SetUnitOccupant(units[i].EntityTransform);
         }
 
-        enemies = new Enemy[3];
-        (int, int)[] enemyIndexes = { (2, 2), (1, 1), (24, 4)};
-        int[] enemyClasses = new int[] { 1, 0, 0 };
+        enemies = new Enemy[10];
+        (int, int)[] enemyIndexes = { (1, 8), (5, 9), (9, 3), (8, 4), (13, 5), (13, 7), (17,6), (28,6), (22,9), (22,5)};
+        bool[] wander = { true, true, false, false, false, false, false, true, true, true, false };
+        int[] enemyClasses = new int[] { 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0 };
+        //Stats[] enemyStats = new Stats[] { new Stats(27, 17, 17, 3, 11, 17, 4), new Stats(25, 7, 11, 24, 25, 11, 7) };
 
         Color color = new Color(1f, 0.5f, 0.5f, 1f);
 
@@ -186,9 +202,18 @@ public class BattleSceneManager : MonoBehaviour
             Vector3 enemyPos = new Vector3(enemyIndexes[i].Item1 * indexSizeMultiplier, -1.4f, enemyIndexes[i].Item2 * indexSizeMultiplier);
             Transform enemyObject = (Instantiate(EntityPrefab, enemyPos, Quaternion.identity));
             Transform enemyAnchor = Instantiate(EntityAnchorPrefab, enemyPos, Quaternion.identity);
-            Stats enemyStats = new Stats(20 + i, 13, 8, 11, 3, 7, 2);
+            //Stats enemyStats = new Stats(20 + i, 13, 8, 11, 3, 7, 2);
             List<Weapon> weaponsEnemy = new List<Weapon>();
-            weaponsEnemy.Add(new Weapon(14, 120, 1, "Frying Pan", AttackType.MELEE, WeaponSprites[2]));
+            //weaponsEnemy.Add(new Weapon(14, 120, 1, "Frying Pan", AttackType.MELEE, WeaponSprites[2]));
+
+            if (enemyClasses[i] == 0)
+            {
+                weaponsEnemy.Add(new Weapon(23, 75, 5, "Cruel Cutter", AttackType.MELEE, WeaponSprites[5]));
+            }
+            else if (enemyClasses[i] == 1)
+            {
+                weaponsEnemy.Add(new Weapon(25, 70, 5, "Stygian Staff", AttackType.MAGIC, WeaponSprites[6]));
+            }
 
             EntityClass entityClass = (EntityClass)enemyClasses[i];
 
@@ -214,7 +239,7 @@ public class BattleSceneManager : MonoBehaviour
             spriteRenderers[5].sprite = Sprites[enemyClasses[i]][5];
             spriteRenderers[5].color = color;
 
-            enemies[i] = new Enemy(i, enemyStats, enemyObject, enemyAnchor, weaponsEnemy, spriteRenderers);
+            enemies[i] = new Enemy(i, new Stats(enemyClasses[i]), enemyObject, enemyAnchor, weaponsEnemy, spriteRenderers, wander[i]);
             grid.Tiles[enemyIndexes[i].Item1, enemyIndexes[i].Item2].SetEnemyOccupant(enemies[i].EntityTransform);
         }
 
@@ -321,7 +346,17 @@ public class BattleSceneManager : MonoBehaviour
         }
 
         OccupationStatus occupationStatus = grid.Tiles[index.Value.Item1, index.Value.Item2].OccupationState;
+
+        Transform unitSet = null;
+        Vector3 pos = new Vector3(index.Value.Item1 * indexSizeMultiplier, -1.4f, index.Value.Item2 * indexSizeMultiplier);
+
+        if (grid.UnitAtPos(pos, out unitSet))
+        {
+
+        }
+
         grid.Tiles[index.Value.Item1, index.Value.Item2].FreeTile();
+        //Debug.Log(index.Value.Item1+ " " + index.Value.Item2);
 
         //set the last tile to open (change it after)
         var bfs = new BreadthFirstSearch(grid, (OGPosTile.TileWIndex, OGPosTile.TileHIndex));
@@ -330,7 +365,12 @@ public class BattleSceneManager : MonoBehaviour
         {
             var path = bfs.PathTo((cursorPosTile.TileWIndex, cursorPosTile.TileHIndex));
 
-            int finalMoveDist = units[unitID].MaxMove;
+            int finalMoveDist = 0;
+
+            if (isUnit)
+                finalMoveDist = units[unitID].MaxMove;
+            else
+                finalMoveDist = enemyMaxMove;
 
             foreach (var item in path)
             {
@@ -340,77 +380,128 @@ public class BattleSceneManager : MonoBehaviour
 
             if (path.Count > finalMoveDist)
             {
-                Debug.Log("NO GO STINKY");
+                //Debug.Log("NO GO STINKY");
+                grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
             }
             else if (path.Count > 0)
             {
-                switch (occupationStatus)
+                if (isUnit)
                 {
-                    case OccupationStatus.OPEN:
+                    switch (occupationStatus)
+                    {
+                        case OccupationStatus.OPEN:
 
-                        foreach (var item in path)
-                        {
-                            grid.Tiles[item.Self.Item1, item.Self.Item2].SetGhostSprite(ghostSprites[(int)item.NodeSprite]);
-                        }
+                            foreach (var item in path)
+                            {
+                                grid.Tiles[item.Self.Item1, item.Self.Item2].SetGhostSprite(ghostSprites[(int)item.NodeSprite]);
+                            }
 
+                            grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
+                            prevPath = path;
+                            SetPrevAndCurrent();
+                            return true;
+
+                        case OccupationStatus.UNITOCCUPIED:
+
+                            foreach (var item in path)
+                            {
+                                grid.Tiles[item.Self.Item1, item.Self.Item2].SetGhostSprite(ghostSprites[(int)item.NodeSprite]);
+                                grid.Tiles[item.Self.Item1, item.Self.Item2].GhostSpriteRend.color = new Color(1f, 0f, 0f, 0.4f);
+                            }
+
+                            //grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
+
+                            grid.Tiles[index.Value.Item1, index.Value.Item2].SetUnitOccupant(unitSet);
+                            prevPath = path;
+                            SetPrevAndCurrent();
+
+                            return false;
+
+                        case OccupationStatus.ENEMYOCCUPIED:
+
+                            foreach (var item in path)
+                            {
+                                grid.Tiles[item.Self.Item1, item.Self.Item2].SetGhostSprite(ghostSprites[(int)item.NodeSprite]);
+                                grid.Tiles[item.Self.Item1, item.Self.Item2].GhostSpriteRend.color = new Color(1f, 0f, 0f, 0.4f);
+                            }
+
+                            (int, int) intTup = (path.Last().PrevNode.Item1, path.Last().PrevNode.Item2);
+                            Vector3 newPos = new Vector3(intTup.Item1 * indexSizeMultiplier, -1.4f,
+                                                         intTup.Item2 * indexSizeMultiplier);
+
+
+                            
+                            if (grid.Tiles[intTup.Item1, intTup.Item2].OccupationState == OccupationStatus.OPEN)
+                            {
+                                GhostEntity.gameObject.SetActive(true);
+                                GhostEntity.transform.position = newPos;
+                                //GhostEntity.GetComponentInChildren<SpriteRenderer>().sprite = units[unitID].EntityTransform.GetComponentInChildren<SpriteRenderer>().sprite;
+
+                                Enemy enemy;
+                                AttackPrompt(unitID, index, out enemy);
+                                InputManager.AttackPrompt(unitID, enemy.ID);
+
+                                grid.Tiles[index.Value.Item1, index.Value.Item2].SetEnemyOccupant(enemy.EntityTransform);
+                                prevPath = path;
+                                SetPrevAndCurrent();
+                            }
+                            else if (grid.Tiles[intTup.Item1, intTup.Item2].OccupationState == OccupationStatus.UNITOCCUPIED && path.Count == 2)
+                            {
+                                Enemy enemy;
+                                AttackPrompt(unitID, index, out enemy);
+                                InputManager.AttackPrompt(unitID, enemy.ID);
+
+                                grid.Tiles[index.Value.Item1, index.Value.Item2].SetEnemyOccupant(enemy.EntityTransform);
+                                prevPath = path;
+                                SetPrevAndCurrent();
+                            }
+                            else
+                            {
+                                (int, int) intTuper = (path.Last().Self.Item1, path.Last().Self.Item2);
+                                Vector3 newPoser = new Vector3(intTuper.Item1 * indexSizeMultiplier, -1.4f,
+                                                             intTuper.Item2 * indexSizeMultiplier);
+
+                                Transform enemy;
+                                grid.EnemyAtPos(newPoser, out enemy);
+
+                                grid.Tiles[index.Value.Item1, index.Value.Item2].SetEnemyOccupant(enemy);
+                                prevPath = path;
+                                SetPrevAndCurrent();
+                            }
+                            
+                            return false;
+
+                        case OccupationStatus.EDIFICE:
+
+                            grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
+                            prevPath = path;
+                            SetPrevAndCurrent();
+                            return false;
+
+                        case OccupationStatus.OUTOFBOUNDS:
+
+                            grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
+                            prevPath = path;
+                            SetPrevAndCurrent();
+                            return false;
+
+                        default:
+                            break;
+                    }
+                }
+                else
+                {
+                    if (occupationStatus == OccupationStatus.UNITOCCUPIED) 
+                    { 
+
+                        grid.Tiles[index.Value.Item1, index.Value.Item2].SetUnitOccupant(unitSet);
+                    }
+                    else
                         grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
-                        prevPath = path;
-                        SetPrevAndCurrent();
-                        return true;
 
-                    case OccupationStatus.UNITOCCUPIED:
+                    prevPath = path;
 
-                        foreach (var item in path)
-                        {
-                            grid.Tiles[item.Self.Item1, item.Self.Item2].SetGhostSprite(ghostSprites[(int)item.NodeSprite]);
-                            grid.Tiles[item.Self.Item1, item.Self.Item2].GhostSpriteRend.color = new Color(1f, 0f, 0f, 0.4f);
-                        }
-
-                        grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
-                        prevPath = path;
-                        SetPrevAndCurrent();
-                        return false;
-
-                    case OccupationStatus.ENEMYOCCUPIED:
-
-                        foreach (var item in path)
-                        {
-                            grid.Tiles[item.Self.Item1, item.Self.Item2].SetGhostSprite(ghostSprites[(int)item.NodeSprite]);
-                            grid.Tiles[item.Self.Item1, item.Self.Item2].GhostSpriteRend.color = new Color(1f, 0f, 0f, 0.4f);
-                        }
-
-                        GhostEntity.gameObject.SetActive(true);
-                        (int, int) intTup = (path.Last().PrevNode.Item1, path.Last().PrevNode.Item2);
-                        Vector3 newPos = new Vector3(intTup.Item1 * indexSizeMultiplier, -1.4f,
-                                                     intTup.Item2 * indexSizeMultiplier);
-                        GhostEntity.transform.position = newPos;
-                        GhostEntity.GetComponentInChildren<SpriteRenderer>().sprite = units[unitID].EntityTransform.GetComponentInChildren<SpriteRenderer>().sprite;
-
-                        Enemy enemy;
-                        AttackPrompt(unitID, index, out enemy);
-                        InputManager.AttackPrompt(unitID, enemy.ID);
-
-                        grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
-                        prevPath = path;
-                        SetPrevAndCurrent();
-                        return false;
-
-                    case OccupationStatus.EDIFICE:
-
-                        grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
-                        prevPath = path;
-                        SetPrevAndCurrent();
-                        return false;
-
-                    case OccupationStatus.OUTOFBOUNDS:
-
-                        grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
-                        prevPath = path;
-                        SetPrevAndCurrent();
-                        return false;
-
-                    default:
-                        break;
+                    return true;
                 }
 
                 //set ghostunit pos to path.last
@@ -423,17 +514,49 @@ public class BattleSceneManager : MonoBehaviour
 
                 
             }
+            else
+            {
+                if (occupationStatus == OccupationStatus.UNITOCCUPIED)
+                {
+
+                    grid.Tiles[index.Value.Item1, index.Value.Item2].SetUnitOccupant(unitSet);
+                }
+                else
+                    grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
+
+                prevPath = path;
+            }
+
         }
         else
         {
-            foreach (var item in prevPath)
+            if (isUnit)
             {
-                grid.Tiles[item.Self.Item1, item.Self.Item2].SetGhostSprite(ghostSprites[(int)item.NodeSprite]);
-                grid.Tiles[item.Self.Item1, item.Self.Item2].GhostSpriteRend.color = new Color(1f, 0f, 0f, 0.4f);
+                foreach (var item in prevPath)
+                {
+                    grid.Tiles[item.Self.Item1, item.Self.Item2].SetGhostSprite(ghostSprites[(int)item.NodeSprite]);
+                    grid.Tiles[item.Self.Item1, item.Self.Item2].GhostSpriteRend.color = new Color(1f, 0f, 0f, 0.4f);
+                }
             }
+
+            if (occupationStatus == OccupationStatus.UNITOCCUPIED)
+            {
+
+                grid.Tiles[index.Value.Item1, index.Value.Item2].SetUnitOccupant(unitSet);
+            }
+            else
+                grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
 
             return false;
         }
+
+        if (occupationStatus == OccupationStatus.UNITOCCUPIED)
+        {
+
+            grid.Tiles[index.Value.Item1, index.Value.Item2].SetUnitOccupant(unitSet);
+        }
+        else
+            grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
 
         return false;
     }
@@ -497,27 +620,44 @@ public class BattleSceneManager : MonoBehaviour
 
     public void GhostMoveUnitAttack(Transform unitTrans, Unit unit, Enemy enemy, InitalAttacker initalAttacker)
     {
-        idInc = 1;
-        unitID = UnitIDFromTransform(unitTrans);
-        //oldPos = entityAnchors[unitID].position;
-        //newPos = new Vector3(prevPath[idInc].Self.Item1 * indexSizeMultiplier, 0, prevPath[idInc].Self.Item2 * indexSizeMultiplier);
-        //Debug.Log(newPos);
-        //unitMoving = true;
+        float xdiff = unit.EntityTransform.position.x - enemy.EntityTransform.position.x;
+        float zdiff = unit.EntityTransform.position.z - enemy.EntityTransform.position.z;
 
-        List<ReturnNode>.Enumerator temp = prevPath.GetEnumerator();
-        temp.MoveNext();
-        UnitMoveAttack(temp, unit, enemy, initalAttacker);
+        xdiff = xdiff / indexSizeMultiplier;
+        zdiff = zdiff / indexSizeMultiplier;
+        
+        if (xdiff == 0 && MathF.Abs(zdiff) == 1)
+        {
+            StartBattleCallBackNoMove(unit, enemy, initalAttacker);
+        }
+        else if(MathF.Abs(xdiff) == 1 && zdiff == 0)
+        {
+            StartBattleCallBackNoMove(unit, enemy, initalAttacker);
+        }
+        else
+        {
+            idInc = 1;
+            unitID = UnitIDFromTransform(unitTrans);
+            //oldPos = entityAnchors[unitID].position;
+            //newPos = new Vector3(prevPath[idInc].Self.Item1 * indexSizeMultiplier, 0, prevPath[idInc].Self.Item2 * indexSizeMultiplier);
+            //Debug.Log(newPos);
+            //unitMoving = true;
+
+            List<ReturnNode>.Enumerator temp = prevPath.GetEnumerator();
+            temp.MoveNext();
+            UnitMoveAttack(temp, unit, enemy, initalAttacker);
+        }
     }
 
-    void UnitMoveAttack(IEnumerator<ReturnNode> em, Unit unit, Enemy enemy, InitalAttacker initalAttacker)
+    void UnitMoveAttack(IEnumerator<ReturnNode> _em, Unit unit, Enemy enemy, InitalAttacker initalAttacker)
     {
-        if (em.MoveNext())
+        if (_em.MoveNext())
         {
-            Vector3 newPosition = new Vector3(em.Current.PrevNode.Item1 * indexSizeMultiplier,
+            Vector3 newPosition = new Vector3(_em.Current.PrevNode.Item1 * indexSizeMultiplier,
                                       -1.4f,
-                                      em.Current.PrevNode.Item2 * indexSizeMultiplier);
+                                      _em.Current.PrevNode.Item2 * indexSizeMultiplier);
 
-            units[unitID].EntityTransform.DOMove(newPosition, 0.25f).SetEase(Ease.Linear).OnComplete(() => UnitMoveAttack(em, unit, enemy, initalAttacker));
+            units[unitID].EntityTransform.DOMove(newPosition, 0.25f).SetEase(Ease.Linear).OnComplete(() => UnitMoveAttack(_em, unit, enemy, initalAttacker));
         }
         else
         {
@@ -555,13 +695,13 @@ public class BattleSceneManager : MonoBehaviour
 
         enemy = EnemyFromPos(enemyPos);
 
-        Debug.Log(enemyPos);
+        //Debug.Log(enemyPos);
 
         G_Tile tile;
 
         if (grid.TileAtPos(enemyPos, out tile))
         {
-            Debug.Log("true");
+            //Debug.Log("true");
         }
         
         Vector3 midpoint = (GhostEntity.position +
@@ -600,6 +740,7 @@ public class BattleSceneManager : MonoBehaviour
         GameState = GameState.PLAYER_TURN;
         //set no input on input manager
         InputManager.PlayerTurn();
+        UIManager.OpenCursorFeedback();
     }
 
     public void EnemyTurnStart()
@@ -622,45 +763,146 @@ public class BattleSceneManager : MonoBehaviour
         //StartCoroutine(TempWait());
     }
 
+    public void EndGame(bool win)
+    {
+        InputManager.IgnoreInput();
+        UIManager.GameEnd(win);
+    }
+
     IEnumerator CalcEnemyMove()
     {
-        //oncomplete call again through callback
+        if (currentEnemyMove == enemies.Length)
+        {
+            currentEnemyMove = 0;
+            EnemyMovesDone();
+            yield break;
+        }
 
+        while (true)
+        {
+            if (enemies[currentEnemyMove].EntityStatus == EntityStatus.DEAD)
+            {
+                currentEnemyMove++;
+
+                if (currentEnemyMove == enemies.Length)
+                {
+                    currentEnemyMove = 0;
+                }
+            }
+            else
+                break;
+        }
 
         CameraFollow.MoveToEnemy(enemies[currentEnemyMove].EntityTransform);
         yield return new WaitForSeconds(2f);
 
-        while (true)
-        {
-            //get current pos
-            (int, int) currentTile = ((int)enemies[currentEnemyMove].EntityTransform.position.x / indexSizeMultiplier, (int)enemies[currentEnemyMove].EntityTransform.position.z / indexSizeMultiplier);
-            //find another pos 3 tiles away
-            int newX = rnd.Next(-3, 4);
-            int newY = rnd.Next(-3, 4);
-
-            (int, int) newPos = (newX + currentTile.Item1, newY + currentTile.Item2);
-            if (newPos == currentTile)
-                continue;
-
-            G_Tile tile;
-            Vector3 testPos = new Vector3(newPos.Item1 * indexSizeMultiplier, -1.4f, newPos.Item2 * indexSizeMultiplier);
-
-            if (!grid.TileAtPos(testPos, out tile))
-                continue;
-
-            if (!CalculatePath(testPos, enemies[currentEnemyMove].EntityTransform, false))
-                continue;
-
-            //continue to next iteration if the pos is invalid
-            break;
-        }
-
-        List<ReturnNode>.Enumerator temp = prevPath.GetEnumerator();
-        temp.MoveNext();
-        EnemyMove(temp);
+        EnemyMove();
     }
 
-    void EnemyMove(IEnumerator<ReturnNode> em)
+    void EnemyMove()
+    {
+        //unit in area
+        while (true)
+        {
+            List<Unit> unitsNear = new List<Unit>();
+            Vector3 moveTo;
+
+            foreach (var unit in units)
+            {
+                bool addUnit = false;
+
+                if(CalculatePath(unit.EntityTransform.position, enemies[currentEnemyMove].EntityTransform, false))
+                {
+                    Vector3[] testPos = new Vector3[4];
+                    testPos[0] = new Vector3(unit.EntityTransform.position.x + (1 * indexSizeMultiplier), -1.4f, unit.EntityTransform.position.z);
+                    testPos[1] = new Vector3(unit.EntityTransform.position.x - (1 * indexSizeMultiplier), -1.4f, unit.EntityTransform.position.z);
+                    testPos[2] = new Vector3(unit.EntityTransform.position.x, -1.4f, unit.EntityTransform.position.z + (1 * indexSizeMultiplier));
+                    testPos[3] = new Vector3(unit.EntityTransform.position.x, -1.4f, unit.EntityTransform.position.z - (1 * indexSizeMultiplier));
+
+                    for (int i = 0; i < testPos.Length; i++)
+                    {
+                        G_Tile tile;
+                        if (grid.TileAtPos(testPos[i], out tile))
+                        {
+                            if (tile.OccupationState == OccupationStatus.OPEN && CalculatePath(testPos[i], enemies[currentEnemyMove].EntityTransform, false))
+                            {
+                                addUnit = true;
+                                moveTo = tile.TileWorldPos;
+                            }
+                        }
+                    }
+                }
+
+                if (addUnit)
+                    unitsNear.Add(unit);
+            }
+
+            Unit unitToAttack = null;
+
+            if (unitsNear.Count == 0)
+                break;
+            else if(unitsNear.Count > 1)  //find lowest health
+            {
+                enemies[currentEnemyMove].WanderOn();
+                unitToAttack = unitsNear[0];
+
+                foreach (var unit in unitsNear)
+                {
+                    if (unit.EntityStats.CurrentHealth < unitToAttack.EntityStats.CurrentHealth)
+                        unitToAttack = unit;
+                }
+            }
+            else if (unitsNear.Count == 1)
+            {
+                enemies[currentEnemyMove].WanderOn();
+                unitToAttack = unitsNear[0];
+            }
+
+            em = prevPath.GetEnumerator();
+            em.MoveNext();
+            EnemyMovingAttack(unitToAttack);
+            return;
+        }
+
+        if (enemies[currentEnemyMove].Wander)
+        {
+            while (true)
+            {
+                //get current pos
+                (int, int) currentTile = ((int)enemies[currentEnemyMove].EntityTransform.position.x / indexSizeMultiplier, (int)enemies[currentEnemyMove].EntityTransform.position.z / indexSizeMultiplier);
+                //find another pos 3 tiles away
+                int newX = rnd.Next(-3, 4);
+                int newY = rnd.Next(-3, 4);
+
+                (int, int) newPos = (newX + currentTile.Item1, newY + currentTile.Item2);
+                if (newPos == currentTile)
+                    continue;
+
+                G_Tile tile;
+                Vector3 testPos = new Vector3(newPos.Item1 * indexSizeMultiplier, -1.4f, newPos.Item2 * indexSizeMultiplier);
+
+                if (!grid.TileAtPos(testPos, out tile))
+                    continue;
+
+                if (!CalculatePath(testPos, enemies[currentEnemyMove].EntityTransform, false))
+                    continue;
+
+                //continue to next iteration if the pos is invalid
+                break;
+            }
+
+            em = prevPath.GetEnumerator();
+            em.MoveNext();
+            EnemyMoving();
+        }
+        else
+        {
+            currentEnemyMove++;
+            StartCoroutine(CalcEnemyMove());
+        }
+    }
+
+    void EnemyMoving()
     {
         if (em.MoveNext())
         {
@@ -668,7 +910,7 @@ public class BattleSceneManager : MonoBehaviour
                                       -1.4f,
                                       em.Current.Self.Item2 * indexSizeMultiplier);
 
-            enemies[currentEnemyMove].EntityTransform.DOMove(newPosition, 0.25f).SetEase(Ease.Linear).OnComplete(() => EnemyMove(em));
+            enemies[currentEnemyMove].EntityTransform.DOMove(newPosition, 0.25f).SetEase(Ease.Linear).OnComplete(() => EnemyMoving());
         }
         else
         {
@@ -694,9 +936,46 @@ public class BattleSceneManager : MonoBehaviour
         }
     }
 
+    void EnemyMovingAttack(Unit toAttack)
+    {
+        if (em.MoveNext())
+        {
+            Vector3 newPosition = new Vector3(em.Current.Self.Item1 * indexSizeMultiplier,
+                                      -1.4f,
+                                      em.Current.Self.Item2 * indexSizeMultiplier);
+
+            enemies[currentEnemyMove].EntityTransform.DOMove(newPosition, 0.25f).SetEase(Ease.Linear).OnComplete(() => EnemyMovingAttack(toAttack));
+        }
+        else
+        {
+            //commit move
+            (int, int) tileIndexAnchor = (((int)enemies[currentEnemyMove].EntityAnchorTransform.position.x / indexSizeMultiplier), ((int)enemies[currentEnemyMove].EntityAnchorTransform.position.z / indexSizeMultiplier));
+            grid.Tiles[tileIndexAnchor.Item1, tileIndexAnchor.Item2].FreeTile();
+
+            enemies[currentEnemyMove].EntityAnchorTransform.position = enemies[currentEnemyMove].EntityTransform.position;
+
+            (int, int) tileIndexAnchor2 = (((int)enemies[currentEnemyMove].EntityAnchorTransform.position.x / indexSizeMultiplier), ((int)enemies[currentEnemyMove].EntityAnchorTransform.position.z / indexSizeMultiplier));
+            grid.Tiles[tileIndexAnchor2.Item1, tileIndexAnchor2.Item2].SetEnemyOccupant(enemies[currentEnemyMove].EntityTransform);
+
+            Startbattle(toAttack, enemies[currentEnemyMove], InitalAttacker.ENEMY);
+        }
+    }
+
     void EnemyMovesDone()
     {
         RemoveGhostSprites();
+
+        if (EndGameCheckEnemy())
+        {
+            EndGame(true);
+            return;
+        }
+        else if (EndGameCheckUnit())
+        {
+            EndGame(false);
+            return;
+        }
+
         PlayerTurnStart();
     }
 
@@ -717,7 +996,7 @@ public class BattleSceneManager : MonoBehaviour
         {
             (int, int) tileIndex = (((int)units[unitID].EntityTransform.position.x / indexSizeMultiplier), ((int)units[unitID].EntityTransform.position.z / indexSizeMultiplier));
             grid.Tiles[tileIndex.Item1, tileIndex.Item2].SetUnitOccupant(units[unitID].EntityTransform);
-            Debug.Log(tileIndex);
+            //Debug.Log(tileIndex);
 
             (int, int) tileIndexAnchor = (((int)units[unitID].EntityAnchorTransform.position.x / indexSizeMultiplier), ((int)units[unitID].EntityAnchorTransform.position.z / indexSizeMultiplier));
             grid.Tiles[tileIndexAnchor.Item1, tileIndexAnchor.Item2].FreeTile();
@@ -748,22 +1027,36 @@ public class BattleSceneManager : MonoBehaviour
     public void Startbattle(Unit unit, Enemy enemy, InitalAttacker initalAttacker)
     {
         UnitDropped();  //await
-        GhostMoveUnitAttack(unit.EntityTransform, unit, enemy, initalAttacker);
+
+        if (initalAttacker == InitalAttacker.UNIT)
+            GhostMoveUnitAttack(unit.EntityTransform, unit, enemy, initalAttacker);
+        else if (initalAttacker == InitalAttacker.ENEMY)
+            StartBattleCallback(unit, enemy, initalAttacker);
     }
 
     public void StartBattleCallback(Unit unit, Enemy enemy, InitalAttacker initalAttacker)
     {
-        UnitCommitMove(true);  //await
+        if (initalAttacker == InitalAttacker.UNIT)
+            UnitCommitMove(true);
+
+        CameraFollow.MoveToBattle();
+        Debug.Log("HOW MANY TIMES PLEASE");
+        BattleObject.GetComponent<BattleLogic>().Init(unit, enemy, initalAttacker);
+    }
+
+    public void StartBattleCallBackNoMove(Unit unit, Enemy enemy, InitalAttacker initalAttacker)
+    {
         CameraFollow.MoveToBattle();
         BattleObject.GetComponent<BattleLogic>().Init(unit, enemy, initalAttacker);
     }
 
-    public void BattleOver(int _unitID, int _enemyID, Outcome outcome)
+    public void BattleOver(int _unitID, int _enemyID, Outcome outcome, InitalAttacker attacker)
     {
         //units[_unitID].TakeDamage(5);
         //Debug.Log(units[_unitID].EntityStats.CurrentHealth);
 
-        units[_unitID].GreyOut();
+        if (attacker == InitalAttacker.UNIT)
+            units[_unitID].GreyOut();
 
         CameraFollow.MoveToGrid();
 
@@ -773,56 +1066,86 @@ public class BattleSceneManager : MonoBehaviour
         {
             case Outcome.UNIT_FIRST_WIN:
 
-                enemies[_enemyID].EntityTransform.DOMoveY(-2, 0.5f).SetDelay(3f).OnComplete(() =>
+                enemies[_enemyID].EntityTransform.DOMoveY(-4.5f, 0.5f).SetDelay(3f).OnComplete(() =>
+                {
+                    enemies[_enemyID].EntityDeader();
+                    BattleOverCallback();
+                });
+
                 {
                     (int, int) tileIndex = (((int)enemies[_enemyID].EntityTransform.position.x / indexSizeMultiplier), ((int)enemies[_enemyID].EntityTransform.position.z / indexSizeMultiplier));
                     grid.Tiles[tileIndex.Item1, tileIndex.Item2].FreeTile();
                     enemies[_enemyID].EntityDead();
-                    BattleOverCallback();
-                });
+                }
 
                 break;
             case Outcome.UNIT_FIRST_LOOSE:
 
-                units[_unitID].EntityTransform.DOMoveY(-2, 0.5f).SetDelay(3f).OnComplete(() =>
+                units[_unitID].EntityTransform.DOMoveY(-4.5f, 0.5f).SetDelay(3f).OnComplete(() =>
+                {
+                    units[_unitID].EntityDeader();
+                    BattleOverCallback();
+                });
+
                 {
                     (int, int) tileIndex = (((int)units[_unitID].EntityTransform.position.x / indexSizeMultiplier), ((int)units[_unitID].EntityTransform.position.z / indexSizeMultiplier));
                     grid.Tiles[tileIndex.Item1, tileIndex.Item2].FreeTile();
                     units[_unitID].EntityDead();
-                    BattleOverCallback();
-                });
+                }
 
                 break;
             case Outcome.ENEMY_FIRST_WIN:
 
-                units[_unitID].EntityTransform.DOMoveY(-2, 0.5f).SetDelay(3f).OnComplete(() =>
+                units[_unitID].EntityTransform.DOMoveY(-4.5f, 0.5f).SetDelay(3f).OnComplete(() =>
+                {
+                    units[_unitID].EntityDeader();
+                    BattleOverCallback();
+                });
+
                 {
                     (int, int) tileIndex = (((int)units[_unitID].EntityTransform.position.x / indexSizeMultiplier), ((int)units[_unitID].EntityTransform.position.z / indexSizeMultiplier));
                     grid.Tiles[tileIndex.Item1, tileIndex.Item2].FreeTile();
                     units[_unitID].EntityDead();
-                    BattleOverCallback();
-                });
+                }
 
                 break;
             case Outcome.ENEMY_FIRST_LOOSE:
 
-                enemies[_enemyID].EntityTransform.DOMoveY(-2, 0.5f).SetDelay(3f).OnComplete(() =>
+                enemies[_enemyID].EntityTransform.DOMoveY(-4.5f, 0.5f).SetDelay(3f).OnComplete(() =>
+                {
+                    enemies[_enemyID].EntityDeader();
+                    BattleOverCallback();
+                });
+
                 {
                     (int, int) tileIndex = (((int)enemies[_enemyID].EntityTransform.position.x / indexSizeMultiplier), ((int)enemies[_enemyID].EntityTransform.position.z / indexSizeMultiplier));
                     grid.Tiles[tileIndex.Item1, tileIndex.Item2].FreeTile();
                     enemies[_enemyID].EntityDead();
-                    BattleOverCallback();
-                });
+                }
 
                 break;
             case Outcome.STALEMATE:
 
-                BattleOverCallback();
+                if (attacker == InitalAttacker.UNIT)
+                    BattleOverCallback();
 
                 break;
         }
 
-        EndTurnCheck(false);
+        if (attacker == InitalAttacker.ENEMY)
+        {
+            currentEnemyMove++;
+            StartCoroutine(CalcEnemyMove());
+        }
+        else
+        {
+            if (EndGameCheckEnemy())
+                EndGame(true);
+            else if (EndGameCheckUnit())
+                EndGame(false);
+            else
+                EndTurnCheck(false);
+        }
     }
 
     void BattleOverCallback()
@@ -842,6 +1165,28 @@ public class BattleSceneManager : MonoBehaviour
         }
 
         EnemyTurnStart();
+    }
+
+    bool EndGameCheckEnemy()
+    {
+        foreach (var enemy in enemies)
+        {
+            if (enemy.EntityStatus != EntityStatus.DEAD)
+                return false;
+        }
+
+        return true;
+    }
+
+    bool EndGameCheckUnit()
+    {
+        foreach (var unit in units)
+        {
+            if (unit.EntityStatus != EntityStatus.DEAD)
+                return false;
+        }
+
+        return true;
     }
 
     public void UnitSelected(Transform unit)

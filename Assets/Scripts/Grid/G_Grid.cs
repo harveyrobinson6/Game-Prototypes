@@ -42,6 +42,7 @@ namespace N_Grid
             (int, int)[] river = new (int, int)[] {  (15, 10), (14, 9), (15, 9), (14, 8), (15, 8), (14, 7), (15, 7), (15, 5),
                                                      (16, 5), (15, 4), (16, 4), (15, 3), (16, 3), (15, 2), (16, 2), (16, 1),
                                                      (17, 1), (16, 0), (17, 0) };
+            (int, int)[] nogo = new (int, int)[] {   (27, 5), (27, 6), (27, 7), (29, 7) };
 
             Tiles = new G_Tile[Width, Height];
 
@@ -120,6 +121,15 @@ namespace N_Grid
                         }
                     }
 
+                    foreach (var index in nogo)
+                    {
+                        if (i == index.Item1 && j == index.Item2)
+                        {
+                            occupationStatus = OccupationStatus.OUTOFBOUNDS;
+                            break;
+                        }
+                    }
+
                     G_Tile newTile = new G_Tile(i, j, IndexSizeMultiplier, adjList, tilePrefabs[i, j].Find("GhostSprite").GetComponentInChildren<SpriteRenderer>(), tileType, occupationStatus, tilePrefabs[i, j].Find("BaseTile").gameObject);
 
                     Tiles[i, j] = newTile;
@@ -152,10 +162,15 @@ namespace N_Grid
                     if (tile.OccupationState == OccupationStatus.UNITOCCUPIED)
                     {
                         outUnit = tile.TileOccupant;
+                        Debug.Log(tile.OccupationState);
                         return true;
                     }
                     else
+                    {
+                        Debug.Log(tile.OccupationState);
                         break;
+                    }
+
                 }
             }
 

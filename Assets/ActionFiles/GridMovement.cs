@@ -134,6 +134,15 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Tutorial"",
+                    ""type"": ""Button"",
+                    ""id"": ""acc5bb35-8643-43f0-abdc-23b86c30eceb"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -304,8 +313,30 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""00687370-5f18-4258-a8bd-f41e8809d0b6"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BumperLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""f2d58672-e465-4edb-9824-98b5b5b3bb9f"",
                     ""path"": ""<Gamepad>/rightShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BumperRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d339f11e-76c5-47dd-b72a-fc6dccfa2316"",
+                    ""path"": ""<Keyboard>/rightArrow"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -326,8 +357,30 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""4b211b46-1c89-41a3-96f8-68cb03e623e6"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraZoomUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""d25d32c6-80b7-4879-87e0-57c6e44a0714"",
                     ""path"": ""<Gamepad>/rightStick/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraZoomDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ce51a57c-35b7-418d-beeb-a0487780b246"",
+                    ""path"": ""<Keyboard>/downArrow"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -343,6 +396,39 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Toggle"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e275f792-c866-4bf9-a2fe-1a6c64482cd8"",
+                    ""path"": ""<Keyboard>/p"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Toggle"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""dd65ec5f-c3b2-4ff2-a0d5-95a7abca5c4d"",
+                    ""path"": ""<Gamepad>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Tutorial"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""26f1ebbd-b399-409b-b80d-0c2b1a21ec45"",
+                    ""path"": ""<Keyboard>/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Tutorial"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -365,6 +451,7 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         m_CursorMovement_CameraZoomUp = m_CursorMovement.FindAction("CameraZoomUp", throwIfNotFound: true);
         m_CursorMovement_CameraZoomDown = m_CursorMovement.FindAction("CameraZoomDown", throwIfNotFound: true);
         m_CursorMovement_Toggle = m_CursorMovement.FindAction("Toggle", throwIfNotFound: true);
+        m_CursorMovement_Tutorial = m_CursorMovement.FindAction("Tutorial", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -436,6 +523,7 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
     private readonly InputAction m_CursorMovement_CameraZoomUp;
     private readonly InputAction m_CursorMovement_CameraZoomDown;
     private readonly InputAction m_CursorMovement_Toggle;
+    private readonly InputAction m_CursorMovement_Tutorial;
     public struct CursorMovementActions
     {
         private @GridMovement m_Wrapper;
@@ -452,6 +540,7 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         public InputAction @CameraZoomUp => m_Wrapper.m_CursorMovement_CameraZoomUp;
         public InputAction @CameraZoomDown => m_Wrapper.m_CursorMovement_CameraZoomDown;
         public InputAction @Toggle => m_Wrapper.m_CursorMovement_Toggle;
+        public InputAction @Tutorial => m_Wrapper.m_CursorMovement_Tutorial;
         public InputActionMap Get() { return m_Wrapper.m_CursorMovement; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -497,6 +586,9 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 @Toggle.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnToggle;
                 @Toggle.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnToggle;
                 @Toggle.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnToggle;
+                @Tutorial.started -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnTutorial;
+                @Tutorial.performed -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnTutorial;
+                @Tutorial.canceled -= m_Wrapper.m_CursorMovementActionsCallbackInterface.OnTutorial;
             }
             m_Wrapper.m_CursorMovementActionsCallbackInterface = instance;
             if (instance != null)
@@ -537,6 +629,9 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
                 @Toggle.started += instance.OnToggle;
                 @Toggle.performed += instance.OnToggle;
                 @Toggle.canceled += instance.OnToggle;
+                @Tutorial.started += instance.OnTutorial;
+                @Tutorial.performed += instance.OnTutorial;
+                @Tutorial.canceled += instance.OnTutorial;
             }
         }
     }
@@ -555,5 +650,6 @@ public partial class @GridMovement : IInputActionCollection2, IDisposable
         void OnCameraZoomUp(InputAction.CallbackContext context);
         void OnCameraZoomDown(InputAction.CallbackContext context);
         void OnToggle(InputAction.CallbackContext context);
+        void OnTutorial(InputAction.CallbackContext context);
     }
 }

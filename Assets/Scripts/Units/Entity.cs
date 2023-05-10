@@ -42,6 +42,11 @@ namespace N_Entity
             //set enum
             EntityStatus = EntityStatus.DEAD;
             //move transform and anchor somewhere
+            
+        }
+
+        public void EntityDeader()
+        {
             EntityTransform.position = new Vector3(-100, 0, 0);
             EntityAnchorTransform.position = new Vector3(-100, 0, 0);
         }
@@ -88,15 +93,28 @@ namespace N_Entity
         public int Dexterity { get; private set; }
         public int Forfeit { get; private set; }
 
-        public Stats(int health, int attack, int defence, int aether, int faith, int dexterity, int forfeit)
+        public Stats(int entityClass)
         {
-            MaxHealth = health;
-            Attack = attack;
-            Defence = defence;
-            Aether = aether;
-            Faith = faith;
-            Dexterity = dexterity;
-            Forfeit = forfeit;
+            if (entityClass == 0)
+            {
+                MaxHealth = 27;
+                Attack = 17;
+                Defence = 17;
+                Aether = 3;
+                Faith = 11;
+                Dexterity = 17;
+                Forfeit = 4;
+            }
+            else if (entityClass == 1)
+            {
+                MaxHealth = 25;
+                Attack = 7;
+                Defence = 11;
+                Aether = 24;
+                Faith = 25;
+                Dexterity = 11;
+                Forfeit = 7;
+            }
 
             CurrentHealth = MaxHealth;
         }

@@ -11,7 +11,7 @@ namespace N_Entity
 
         }
 
-        public Unit(int id, Stats stats, Transform transform, Transform anchor, List<Weapon> weapons, SpriteRenderer[] spriteRenderers)
+        public Unit(int id, Stats stats, Transform transform, Transform anchor, List<Weapon> weapons, SpriteRenderer[] spriteRenderers, EntityClass entityClass)
         {
             ID = id;
             SelectedWeapon = 0;
@@ -20,9 +20,9 @@ namespace N_Entity
             EntityTransform = transform;
             EntityAnchorTransform = anchor;
 
-            MaxMove = 10;
-            EntityName = "Sneed";
-            EntityClass = EntityClass.Knight;
+            MaxMove = 6;
+            EntityName = "Unit";
+            EntityClass = entityClass;
 
             Weapons = weapons;
 

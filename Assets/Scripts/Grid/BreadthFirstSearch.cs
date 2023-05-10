@@ -51,7 +51,7 @@ namespace N_Grid
             else if (lastNode)
             {
                 (int, int) result = (PrevNode.Item1 - Self.Item1, PrevNode.Item2 - Self.Item2);
-                Debug.Log(result);
+                //Debug.Log(result);
 
                 if (result == (0, -1))
                 {

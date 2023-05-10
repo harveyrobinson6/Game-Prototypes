@@ -62,6 +62,7 @@ namespace N_Grid
         {
             OccupationState = OccupationStatus.UNITOCCUPIED;
             TileOccupant = occ;
+            Debug.Log("Unit occupant set at " + occ.position.x/5 + "," + occ.position.z/5);
         }
 
         public void SetEnemyOccupant(Transform occ)
@@ -74,11 +75,13 @@ namespace N_Grid
         {
             TileOccupant = null;
             OccupationState = OccupationStatus.OPEN;
+            Debug.Log(TileWIndex + "," + TileHIndex + " Now free");
         }
 
         public void DEBUG_OCCUPY(OccupationStatus occ)
         {
             OccupationState = occ;
+            Debug.Log(TileWIndex + "," + TileHIndex + " Now occupied: " + occ);
         }
 
         public void SetGhostSprite(Sprite sprite)

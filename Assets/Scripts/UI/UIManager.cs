@@ -12,6 +12,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] InputManager InputManager;
     [SerializeField] CameraFollow CameraFollow;
 
+    [SerializeField] SoundManager SM;
+
     Tween currentSelected;
     Tween UnitFlashBar;
     Tween EnemyFlashBar;
@@ -93,6 +95,12 @@ public class UIManager : MonoBehaviour
     [SerializeField] Transform IntroTopHalf;
     [SerializeField] Transform IntroBottomHalf;
 
+    [SerializeField] Transform EndCard;
+    [SerializeField] CanvasGroup EndCardCG;
+    [SerializeField] Transform EndTopHalf;
+    [SerializeField] Transform EndBottomHalf;
+    [SerializeField] TextMeshProUGUI ResultText;
+
     [SerializeField] Transform PlayerTurnTitleCard;
     [SerializeField] Transform PlayerText;
     [SerializeField] Transform TurnText;
@@ -102,8 +110,31 @@ public class UIManager : MonoBehaviour
     [SerializeField] Transform TurnText2;
     [SerializeField] CanvasGroup EnemyTurnCG;
 
+    [SerializeField] Transform unitDamageText;
+    [SerializeField] Transform enemyDamageText;
+    [SerializeField] CanvasGroup unitDamageTextCG;
+    [SerializeField] CanvasGroup enemyDamageTextCG;
+
+    [SerializeField] Transform unitMissText;
+    [SerializeField] Transform enemyMissText;
+    [SerializeField] CanvasGroup unitMissTextCG;
+    [SerializeField] CanvasGroup enemyMissTextCG;
+
+    [SerializeField] Transform unitCritText;
+    [SerializeField] Transform enemyCritText;
+    [SerializeField] CanvasGroup unitCritTextCG;
+    [SerializeField] CanvasGroup enemyCritTextCG;
+
+    [SerializeField] Transform Tutorial;
+    [SerializeField] Image currentTutorial;
+    [SerializeField] CanvasGroup TutorialCG;
+
+    [SerializeField] Sprite[] Tutorials;
+
     [SerializeField] Transform InventoryElement;
     Transform[] invelements;
+
+    int tutorialSelected = 0;
 
     private void Awake()
     {
@@ -118,6 +149,17 @@ public class UIManager : MonoBehaviour
         UnitOverview1.gameObject.SetActive(false);
         BattleForecastObj.gameObject.SetActive(false);
 
+        unitDamageText.gameObject.SetActive(false);
+        enemyDamageText.gameObject.SetActive(false);
+        unitMissText.gameObject.SetActive(false);
+        enemyMissText.gameObject.SetActive(false);
+        unitCritText.gameObject.SetActive(false);
+        enemyCritText.gameObject.SetActive(false);
+
+        EndCard.gameObject.SetActive(false);
+        EndTopHalf.gameObject.SetActive(false);
+        EndBottomHalf.gameObject.SetActive(false);
+
         IntroTitleCard.gameObject.SetActive(false);
         IntroTopHalf.gameObject.SetActive(false);
         IntroBottomHalf.gameObject.SetActive(false);
@@ -131,6 +173,8 @@ public class UIManager : MonoBehaviour
         IntroTitleCard.gameObject.SetActive(true);
         IntroTopHalf.gameObject.SetActive(true);
         IntroBottomHalf.gameObject.SetActive(true);
+
+        Tutorial.gameObject.SetActive(false);
 
         IntroTopHalf.transform.localPosition = new Vector3(-1309, 100, 0);
         IntroBottomHalf.transform.localPosition = new Vector3(1309, -100, 0);
@@ -147,6 +191,44 @@ public class UIManager : MonoBehaviour
 
                 BSM.PlayerTurnStart();
             });
+        });
+    }
+
+    public void GameEnd(bool win)
+    {
+        CloseCursorFeedback();
+
+        EndCard.gameObject.SetActive(true);
+        EndTopHalf.gameObject.SetActive(true);
+        EndBottomHalf.gameObject.SetActive(true);
+
+        if (win)
+        {
+            ResultText.text = "Result:  <color=green>Victory</color>";
+        }
+        else
+        {
+            ResultText.text = "Result:  <color=red>Defeat</color>";
+        }
+
+        EndTopHalf.transform.localPosition = new Vector3(-1309, 100, 0);
+        EndBottomHalf.transform.localPosition = new Vector3(1309, -100, 0);
+
+        EndTopHalf.DOLocalMoveX(0, 2f);
+
+        EndBottomHalf.DOLocalMoveX(0, 2f).OnComplete(() =>
+        {
+            //EndCard.gameObject.SetActive(false);
+            //EndTopHalf.gameObject.SetActive(false);
+            //EndBottomHalf.gameObject.SetActive(false);
+            /*
+            EndCardCG.DOFade(0, 2f).SetDelay(2f).OnComplete(() =>
+            {
+                EndCard.gameObject.SetActive(false);
+                EndTopHalf.gameObject.SetActive(false);
+                EndBottomHalf.gameObject.SetActive(false);
+
+            });*/
         });
     }
 
@@ -199,6 +281,124 @@ public class UIManager : MonoBehaviour
                 TurnText2.gameObject.SetActive(false);
 
                 BSM.EnemyTurn();
+            });
+        });
+    }
+
+    public void UnitTakeDamage(int damage)
+    {
+        unitDamageText.gameObject.SetActive(true);
+        unitDamageTextCG.alpha = 1;
+        unitDamageText.localPosition = new Vector3(0, 0, 0);
+
+        unitDamageText.GetComponentInChildren<TextMeshProUGUI>().text = damage.ToString();
+
+        SM.PlayHitSound();
+
+        unitDamageText.DOLocalMoveY(25f, 0.5f).OnComplete(() =>
+        {
+            unitDamageTextCG.DOFade(0f, 0.5f).SetDelay(1f).OnComplete(() =>
+            {
+                unitDamageText.gameObject.SetActive(false);
+            });
+        });
+    }
+
+    public void EnemyTakeDamage(int damage)
+    {
+        enemyDamageText.gameObject.SetActive(true);
+        enemyDamageTextCG.alpha = 1;
+        enemyDamageText.localPosition = new Vector3(0, 0, 0);
+
+        enemyDamageText.GetComponentInChildren<TextMeshProUGUI>().text = damage.ToString();
+
+        SM.PlayHitSound();
+
+        enemyDamageText.DOLocalMoveY(25f, 0.5f).OnComplete(() =>
+        {
+            enemyDamageTextCG.DOFade(0f, 0.5f).SetDelay(1f).OnComplete(() =>
+            {
+                enemyDamageText.gameObject.SetActive(false);
+            });
+        });
+    }
+
+    public void UnitMiss()
+    {
+        unitMissText.gameObject.SetActive(true);
+        unitMissTextCG.alpha = 1;
+        unitMissText.localPosition = new Vector3(0, 0, 0);
+
+        unitMissText.GetComponentInChildren<TextMeshProUGUI>().text = "MISS!";
+
+        SM.PlayMissSound();
+
+        unitMissText.DOLocalMoveY(25f, 0.5f).OnComplete(() =>
+        {
+            unitMissTextCG.DOFade(0f, 0.5f).SetDelay(1f).OnComplete(() =>
+            {
+                unitMissText.gameObject.SetActive(false);
+            });
+        });
+    }
+
+    public void EnemyMiss()
+    {
+        enemyMissText.gameObject.SetActive(true);
+        enemyMissTextCG.alpha = 1;
+        enemyMissText.localPosition = new Vector3(0, 0, 0);
+
+        enemyMissText.GetComponentInChildren<TextMeshProUGUI>().text = "MISS!";
+
+        SM.PlayMissSound();
+
+        enemyMissText.DOLocalMoveY(25f, 0.5f).OnComplete(() =>
+        {
+            enemyMissTextCG.DOFade(0f, 0.5f).SetDelay(1f).OnComplete(() =>
+            {
+                enemyMissText.gameObject.SetActive(false);
+            });
+        });
+    }
+
+    public void UnitCrt(int damage)
+    {
+        UnitTakeDamage(damage);
+
+        unitCritText.gameObject.SetActive(true);
+        unitCritTextCG.alpha = 1;
+        unitCritText.localPosition = new Vector3(0, 0, 0);
+
+        unitCritText.GetComponentInChildren<TextMeshProUGUI>().text = "CRIT!";
+
+        SM.PlayHitSound();
+
+        unitCritText.DOLocalMove(new Vector3(-35, 20, 0), 0.5f).OnComplete(() =>
+        {
+            unitCritTextCG.DOFade(0f, 0.5f).SetDelay(1f).OnComplete(() =>
+            {
+                unitCritText.gameObject.SetActive(false);
+            });
+        });
+    }
+
+    public void EnemyCrt(int damage)
+    {
+        EnemyTakeDamage(damage);
+
+        enemyCritText.gameObject.SetActive(true);
+        enemyCritTextCG.alpha = 1;
+        enemyCritText.localPosition = new Vector3(0, 0, 0);
+
+        enemyCritText.GetComponentInChildren<TextMeshProUGUI>().text = "CRIT!";
+
+        SM.PlayHitSound();
+
+        enemyCritText.DOLocalMove(new Vector3(35, 20, 0), 0.5f).OnComplete(() =>
+        {
+            enemyCritTextCG.DOFade(0f, 0.5f).SetDelay(1f).OnComplete(() =>
+            {
+                enemyCritText.gameObject.SetActive(false);
             });
         });
     }
@@ -257,14 +457,24 @@ public class UIManager : MonoBehaviour
         //yield return new WaitForSeconds(0.4f);
         //destroy transforms
         currentSelected.Kill();
-        for (int i = 0; i < UIElements.Count; i++)
+        
+        try
         {
-            if (i == 0)
-                UIElements[i].DOLocalMove(new Vector3(0, 0, 0), 0.5f).onComplete = ContextMenuClosed;
-            else
-                UIElements[i].DOLocalMove(new Vector3(0, 0, 0), 0.5f);
+            for (int i = 0; i < UIElements.Count; i++)
+            {
+                if (i == 0)
+                    UIElements[i].DOLocalMove(new Vector3(0, 0, 0), 0.5f).onComplete = ContextMenuClosed;
+                else
+                    UIElements[i].DOLocalMove(new Vector3(0, 0, 0), 0.5f);
 
-            UIElements[i].DOScale(new Vector3(0, 0, 0), 0.5f);
+                UIElements[i].DOScale(new Vector3(0, 0, 0), 0.5f);
+            }
+
+            ContextMenuCloseInv();
+        }
+        catch (System.Exception)
+        {
+            return;
         }
     }
 
@@ -281,7 +491,7 @@ public class UIManager : MonoBehaviour
 
         switch (dir)
         {
-            case Direction.UP:
+            case Direction.RIGHT:
 
                 if (contextMenuSelectedItem == 0)
                     contextMenuSelectedItem = UIElements.Count - 1;
@@ -290,13 +500,30 @@ public class UIManager : MonoBehaviour
 
                 break;
 
-            case Direction.DOWN:
+            case Direction.LEFT:
 
                 if (contextMenuSelectedItem == UIElements.Count - 1)
                     contextMenuSelectedItem = 0;
                 else
                     contextMenuSelectedItem++;
 
+                break;
+
+            case Direction.UP:
+
+                if (contextMenuSelectedItem == UIElements.Count - 1)
+                    contextMenuSelectedItem = 0;
+                else
+                    contextMenuSelectedItem++;
+
+                break;
+
+            case Direction.DOWN:
+
+                if (contextMenuSelectedItem == 0)
+                    contextMenuSelectedItem = UIElements.Count - 1;
+                else
+                    contextMenuSelectedItem--;
                 break;
         }
 
@@ -325,7 +552,7 @@ public class UIManager : MonoBehaviour
     public void ContextMenuIconSelected(Transform unit)
     {
         string type = ElementType[contextMenuSelectedItem];
-        Debug.Log(type);
+        //Debug.Log(type);
 
         switch (type)
         {
@@ -334,6 +561,7 @@ public class UIManager : MonoBehaviour
                 contextMenuSelectedItem = 0;
 
                 InputManager.EnemyBattleHover.gameObject.SetActive(true);
+                Debug.Log(InputManager.EnemyCycle.Count);
                 Vector3 newPos = InputManager.EnemyCycle[InputManager.selectedEnemy].position;
                 Debug.Log(newPos);
                 newPos.y = 3.5f;
@@ -627,11 +855,13 @@ public class UIManager : MonoBehaviour
             case AttackType.MELEE:
 
                 unitPowerVal = ((currentUnit.EntityStats.Attack + unitWeapon.Power) / 2) - currentEnemy.EntityStats.Defence;
+                unitPowerVal = Mathf.Clamp(unitPowerVal, 0, 999);
 
                 break;
             case AttackType.MAGIC:
 
                 unitPowerVal = ((currentUnit.EntityStats.Aether + unitWeapon.Power) / 2) - currentEnemy.EntityStats.Faith;
+                unitPowerVal = Mathf.Clamp(unitPowerVal, 0, 999);
 
                 break;
         }
@@ -641,11 +871,13 @@ public class UIManager : MonoBehaviour
             case AttackType.MELEE:
 
                 enemyPowerVal = ((currentEnemy.EntityStats.Attack + enemyWeapon.Power) / 2) - currentUnit.EntityStats.Defence;
+                enemyPowerVal = Mathf.Clamp(enemyPowerVal, 0, 999);
 
                 break;
             case AttackType.MAGIC:
 
                 enemyPowerVal = ((currentEnemy.EntityStats.Aether + enemyWeapon.Power) / 2) - currentUnit.EntityStats.Faith;
+                enemyPowerVal = Mathf.Clamp(enemyPowerVal, 0, 999);
 
                 break;
         }
@@ -727,6 +959,69 @@ public class UIManager : MonoBehaviour
         float speed = Mathf.Clamp(baseSpeed - (1-fill), 0.4f, 1f);
 
         return speed;
+    }
+
+    #endregion
+
+    #region Tutorial
+
+    public void OpenTutorial()
+    {
+        Tutorial.gameObject.SetActive(true);
+        currentTutorial.sprite = Tutorials[0];
+
+        Tutorial.DOLocalMoveY(0, 0.5f).onComplete = TutorialOpened;
+        TutorialCG.DOFade(1f, 0.5f);
+
+        CloseCursorFeedback();
+    }
+
+    void TutorialOpened()
+    {
+        InputManager.TutorialOpened();
+    }
+
+    public void CloseTutorial()
+    {
+        Tutorial.DOLocalMoveY(-470, 0.5f).onComplete = CloseTutorialCallback;
+        TutorialCG.DOFade(0f, 0.5f);
+
+        OpenCursorFeedback();
+    }
+
+    public void CloseTutorialCallback()
+    {
+        Tutorial.gameObject.SetActive(false);
+        InputManager.TutorialClosed();
+    }
+
+    public void TutorialCycle(BumperDirection direction)
+    {
+        switch (direction)
+        {
+            case BumperDirection.LEFT:
+
+                tutorialSelected--;
+
+                if (tutorialSelected < 0)
+                {
+                    tutorialSelected = Tutorials.Length - 1;
+                }
+
+                break;
+            case BumperDirection.RIGHT:
+
+                tutorialSelected++;
+
+                if (tutorialSelected == Tutorials.Length)
+                {
+                    tutorialSelected = 0;
+                }
+
+                break;
+        }
+
+        currentTutorial.sprite = Tutorials[tutorialSelected];
     }
 
     #endregion
