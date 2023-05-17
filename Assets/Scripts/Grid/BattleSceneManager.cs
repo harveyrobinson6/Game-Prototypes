@@ -139,19 +139,18 @@ public class BattleSceneManager : MonoBehaviour
 
         //make gameObjects
 
-        units = new Unit[6];
-        (int, int)[] unitIndexes = {(0,1), (1,0), (1,2), (7, 1), (22, 0), (24, 0) };
-        int[] unitClasses = new int[] { 0, 0, 1, 1, 0, 1 };
-        //Stats[] classStats = new Stats[] { new Stats(30, 19, 17, 3, 11, 15, 4), new Stats(22, 7, 11, 25, 27, 11, 7) };
-        //Vector3[] positions = {new Vector3(0,0,0), new Vector3(25, 0, 25), new Vector3(10, 0, 35)};
+        units = new Unit[7];
+        (int, int)[] unitIndexes = {(0,2), (3,1), (7,5), (7,3), (13, 6), (22, 0), (24, 0) };
+        int[] unitClasses = new int[] { 1, 0, 1, 0, 0, 1, 0 };
 
         for (int i = 0; i < units.Length; i++)
         {
             Vector3 pos = new Vector3(unitIndexes[i].Item1 * indexSizeMultiplier, -1.4f, unitIndexes[i].Item2 * indexSizeMultiplier);
             Transform entityObject = (Instantiate(EntityPrefab, pos, Quaternion.identity));
             Transform unitAnchor = Instantiate(EntityAnchorPrefab, pos, Quaternion.identity);
-            //Stats stats = new Stats(20, 13, 8, 11, 3, 7, 2);
             List<Weapon> weapons = new List<Weapon>();
+            
+            //weapons.Add(new Weapon(1000, 100, 0, "Showcase weapon", AttackType.MELEE, WeaponSprites[1]));
             
             if (unitClasses[i] == 0)
             {
@@ -164,13 +163,15 @@ public class BattleSceneManager : MonoBehaviour
                 weapons.Add(new Weapon(41, 60, 15, "Thunder Staff", AttackType.MAGIC, WeaponSprites[4]));
             }
 
+
             //weapons.Add(new Weapon(1, 5, 0, "MISS_TEST", AttackType.MELEE, WeaponSprites[1]));
+            //weapons.Add(new Weapon(1, 100, 100, "CRIT_TEST", AttackType.MELEE, WeaponSprites[1]));
 
             EntityClass entityClass = (EntityClass)unitClasses[i];
-            Debug.Log(entityClass);
+
+            #region SPRITE RENDERERS
 
             var obj = entityObject.Find("Parent");
-
             SpriteRenderer[] spriteRenderers = new SpriteRenderer[6];
             spriteRenderers[0] = obj.Find("HeadSprite").GetComponent<SpriteRenderer>();
             spriteRenderers[0].sprite = Sprites[unitClasses[i]][0];
@@ -185,12 +186,14 @@ public class BattleSceneManager : MonoBehaviour
             spriteRenderers[5] = obj.Find("FeetSprite").GetComponent<SpriteRenderer>();
             spriteRenderers[5].sprite = Sprites[unitClasses[i]][5];
 
+            #endregion
+
             units[i] = new Unit(i, new Stats(unitClasses[i]), entityObject, unitAnchor, weapons, spriteRenderers, entityClass);
             grid.Tiles[unitIndexes[i].Item1, unitIndexes[i].Item2].SetUnitOccupant(units[i].EntityTransform);
         }
 
-        enemies = new Enemy[10];
-        (int, int)[] enemyIndexes = { (1, 8), (5, 9), (9, 3), (8, 4), (13, 5), (13, 7), (17,6), (28,6), (22,9), (22,5)};
+        enemies = new Enemy[9];
+        (int, int)[] enemyIndexes = { (1, 4), (5, 5), (9, 3), (8, 4), (9, 5), (17,5), (28,6), (22,9), (22,5)};
         bool[] wander = { true, true, false, false, false, false, false, true, true, true, false };
         int[] enemyClasses = new int[] { 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0 };
         //Stats[] enemyStats = new Stats[] { new Stats(27, 17, 17, 3, 11, 17, 4), new Stats(25, 7, 11, 24, 25, 11, 7) };
@@ -204,15 +207,16 @@ public class BattleSceneManager : MonoBehaviour
             Transform enemyAnchor = Instantiate(EntityAnchorPrefab, enemyPos, Quaternion.identity);
             //Stats enemyStats = new Stats(20 + i, 13, 8, 11, 3, 7, 2);
             List<Weapon> weaponsEnemy = new List<Weapon>();
-            //weaponsEnemy.Add(new Weapon(14, 120, 1, "Frying Pan", AttackType.MELEE, WeaponSprites[2]));
+            
+            //weaponsEnemy.Add(new Weapon(1400, 120, 1, "Frying Pan", AttackType.MELEE, WeaponSprites[2]));
 
             if (enemyClasses[i] == 0)
             {
-                weaponsEnemy.Add(new Weapon(23, 75, 5, "Cruel Cutter", AttackType.MELEE, WeaponSprites[5]));
+                weaponsEnemy.Add(new Weapon(23, 100, 5, "Cruel Cutter", AttackType.MELEE, WeaponSprites[5]));
             }
             else if (enemyClasses[i] == 1)
             {
-                weaponsEnemy.Add(new Weapon(25, 70, 5, "Stygian Staff", AttackType.MAGIC, WeaponSprites[6]));
+                weaponsEnemy.Add(new Weapon(25, 100, 5, "Stygian Staff", AttackType.MAGIC, WeaponSprites[6]));
             }
 
             EntityClass entityClass = (EntityClass)enemyClasses[i];
@@ -356,9 +360,7 @@ public class BattleSceneManager : MonoBehaviour
         }
 
         grid.Tiles[index.Value.Item1, index.Value.Item2].FreeTile();
-        //Debug.Log(index.Value.Item1+ " " + index.Value.Item2);
 
-        //set the last tile to open (change it after)
         var bfs = new BreadthFirstSearch(grid, (OGPosTile.TileWIndex, OGPosTile.TileHIndex));
 
         if (bfs.HasPathTo((cursorPosTile.TileWIndex, cursorPosTile.TileHIndex)))
@@ -380,7 +382,6 @@ public class BattleSceneManager : MonoBehaviour
 
             if (path.Count > finalMoveDist)
             {
-                //Debug.Log("NO GO STINKY");
                 grid.Tiles[index.Value.Item1, index.Value.Item2].DEBUG_OCCUPY(occupationStatus);
             }
             else if (path.Count > 0)
@@ -809,10 +810,15 @@ public class BattleSceneManager : MonoBehaviour
 
             foreach (var unit in units)
             {
+                if (unit.EntityStatus == EntityStatus.DEAD)
+                    continue;
+
                 bool addUnit = false;
 
+                //if this enemy has a valid path to current unit
                 if(CalculatePath(unit.EntityTransform.position, enemies[currentEnemyMove].EntityTransform, false))
                 {
+                    //spaces next to unit
                     Vector3[] testPos = new Vector3[4];
                     testPos[0] = new Vector3(unit.EntityTransform.position.x + (1 * indexSizeMultiplier), -1.4f, unit.EntityTransform.position.z);
                     testPos[1] = new Vector3(unit.EntityTransform.position.x - (1 * indexSizeMultiplier), -1.4f, unit.EntityTransform.position.z);
@@ -826,6 +832,7 @@ public class BattleSceneManager : MonoBehaviour
                         {
                             if (tile.OccupationState == OccupationStatus.OPEN && CalculatePath(testPos[i], enemies[currentEnemyMove].EntityTransform, false))
                             {
+                                //potential move space found
                                 addUnit = true;
                                 moveTo = tile.TileWorldPos;
                             }
@@ -841,8 +848,9 @@ public class BattleSceneManager : MonoBehaviour
 
             if (unitsNear.Count == 0)
                 break;
-            else if(unitsNear.Count > 1)  //find lowest health
+            else if(unitsNear.Count > 1)  
             {
+                //if there is more than one unit, the one with the lowest health is prefered
                 enemies[currentEnemyMove].WanderOn();
                 unitToAttack = unitsNear[0];
 
@@ -1028,6 +1036,8 @@ public class BattleSceneManager : MonoBehaviour
     {
         UnitDropped();  //await
 
+        UIManager.CloseCursorFeedback();
+
         if (initalAttacker == InitalAttacker.UNIT)
             GhostMoveUnitAttack(unit.EntityTransform, unit, enemy, initalAttacker);
         else if (initalAttacker == InitalAttacker.ENEMY)
@@ -1059,6 +1069,7 @@ public class BattleSceneManager : MonoBehaviour
             units[_unitID].GreyOut();
 
         CameraFollow.MoveToGrid();
+        UIManager.OpenCursorFeedback();
 
         Debug.Log(outcome);
 

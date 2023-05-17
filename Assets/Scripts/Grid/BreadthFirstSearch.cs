@@ -227,7 +227,6 @@ namespace N_Grid
             }
 
             List<(int, int)> stackList = stack.ToList<(int, int)>();
-            //ReturnNode[] rtnAry = new ReturnNode[stack.Count];  //change to list
             List<ReturnNode> rtnList = new List<ReturnNode>();
 
             if (stackList.Count != 0)
@@ -235,20 +234,11 @@ namespace N_Grid
                 for (int i = 0; i < stackList.Count; i++)
                 {
                     if (i == 0)
-                    {
-                        //rtnAry[i] = new ReturnNode(true, false, stackList[i], (0, 0), stackList.Last());
                         rtnList.Add(new ReturnNode(true, false, stackList[i], (0, 0), stackList.Last()));
-                    }
                     else if (i == stackList.Count - 1)
-                    {
-                        //rtnAry[i] = new ReturnNode(false, true, stackList[i], stackList[i - 1], (0, 0));
                         rtnList.Add(new ReturnNode(false, true, stackList[i], stackList[i - 1], (0, 0)));
-                    }
                     else
-                    {
-                        //rtnAry[i] = new ReturnNode(false, false, stackList[i], stackList[i - 1], stackList[i+1]);
                         rtnList.Add(new ReturnNode(false, false, stackList[i], stackList[i - 1], stackList[i + 1]));
-                    }
                 }
             }
 

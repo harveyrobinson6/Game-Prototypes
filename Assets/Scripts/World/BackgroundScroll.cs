@@ -8,7 +8,7 @@ public class BackgroundScroll : MonoBehaviour
     Vector3 newStart;
     Vector3 bg2Start;
 
-    float cloudSpeed = 20;
+    float cloudSpeed = 40;
 
     [SerializeField] Transform bg1;
     [SerializeField] Transform bg2;

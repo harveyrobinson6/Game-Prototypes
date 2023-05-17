@@ -50,24 +50,17 @@ namespace N_Grid
             {
                 for (int j = 0; j < Height; j++)
                 {
-                    //make adj grid
-                    //add one to w then h, minus 1 to w then h
-                    //if less than 0 or greater than w/h then skip
-
                     List<(int, int)> adjList = new List<(int, int)>();
 
                     //(+1,0)
                     if (i + 1 < width)
                         adjList.Add((i + 1, j));
-
                     //(-1,0)
                     if (i - 1 > -1)
-                        adjList.Add((i - 1, j));    //DO BOUNDS CHECK DURING ALGORITHM
-
+                        adjList.Add((i - 1, j));
                     //(0,+1)
                     if (j + 1 < height)
                         adjList.Add((i, j + 1));
-
                     //(0,-1)
                     if (j - 1 > -1)
                         adjList.Add((i, j - 1));

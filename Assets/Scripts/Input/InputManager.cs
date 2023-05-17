@@ -593,7 +593,9 @@ public class InputManager : MonoBehaviour
                                 }
                             }
                             else
-                                break;
+                            {
+
+                            }
                         }
 
                         break;
@@ -624,7 +626,9 @@ public class InputManager : MonoBehaviour
                                 }
                             }
                             else
-                                break;
+                            {
+
+                            }
                         }
 
                         break;
